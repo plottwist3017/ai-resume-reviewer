@@ -407,13 +407,19 @@ Return this exact JSON structure:
   "grammar_suggestions": [<list of strings>],
   "improvement_suggestions": [<list of strings>],
   "recommendation": "<one of: Strong Match, Moderate Match, Weak Match>",
-  "recommendation_reason": "<1-2 sentences explaining the recommendation>"
-  }}
+ "recommendation_reason": "<short reason>"
+}}
 
 IMPORTANT:
-Return ONLY the JSON.
-Maximum response length: 1000 words.
-Do not include more than 5 items in any list.
+Return ONLY JSON.
+Do not explain anything.
+Keep all arrays short:
+- strengths: maximum 3 items
+- weaknesses: maximum 3 items
+- missing_keywords: maximum 5 items
+- grammar_suggestions: maximum 3 items
+- improvement_suggestions: maximum 3 items
+- extracted_info lists: maximum 8 items each.
 """
 
 
@@ -436,8 +442,8 @@ def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url:
         "input": prompt,
         "parameters": {
             "decoding_method": "greedy",
-            "max_new_tokens": 2500,
-            "temperature": 0.1,
+            "max_new_tokens": 4000,
+            "temperature": 0,
         },
     }
 
