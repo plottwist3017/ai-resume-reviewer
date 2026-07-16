@@ -411,9 +411,9 @@ Return this exact JSON structure:
   }}
 
 IMPORTANT:
-Return concise JSON only.
-Limit every list to a maximum of 5 items.
-Ensure the JSON is fully closed.
+Return ONLY the JSON.
+Maximum response length: 1000 words.
+Do not include more than 5 items in any list.
 """
 
 
@@ -436,7 +436,7 @@ def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url:
         "input": prompt,
         "parameters": {
             "decoding_method": "greedy",
-            "max_new_tokens": 5000,
+            "max_new_tokens": 8000,
             "temperature": 0.1,
         },
     }
@@ -461,38 +461,37 @@ def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url:
 
 
 def parse_json_response(raw: str) -> dict:
-    """Extract JSON from IBM watsonx response."""
+    raw = raw.replace("```json", "")
+    raw = raw.replace("```", "")
+    raw = raw.strip()
 
-    cleaned = raw.strip()
+    start = raw.find("{")
 
-    cleaned = cleaned.replace("```json", "")
-    cleaned = cleaned.replace("```", "")
+    if start == -1:
+        raise Exception("No JSON found")
 
-    start = cleaned.find("{")
-    end = cleaned.rfind("}")
-
-    if start != -1:
-        cleaned = cleaned[start:]
-
-    if end != -1:
-        cleaned = cleaned[:end + 1]
+    json_text = raw[start:]
 
     try:
-        return json.loads(cleaned)
+        return json.loads(json_text)
 
     except json.JSONDecodeError:
+        # emergency repair for truncated JSON
+        json_text = json_text.rstrip()
 
-        # Try repairing incomplete JSON
+        while json_text and json_text[-1] not in ["}", "]"]:
+            json_text = json_text[:-1]
+
+        json_text += "\n}" 
+
         try:
-            repaired = cleaned + "}"
-            return json.loads(repaired)
+            return json.loads(json_text)
 
         except:
             raise Exception(
-                "AI response was incomplete.\n\n"
-                f"Received:\n{raw[:1000]}"
+                "AI response was incomplete.\n\nReceived:\n"
+                + raw[:1500]
             )
-
 
 # ──────────────────────────────────────────────
 # Plotly chart helpers
