@@ -375,8 +375,8 @@ Return this exact JSON structure:
   "ats_score": <integer 0-100>,
   "skills_match_percent": <integer 0-100>,
   "missing_keywords": [<list of strings>],
-  "strengths": [<list of strings>],
-  "weaknesses": [<list of strings>],
+  "strengths": [<3 concise points>],
+  "weaknesses": [<3 concise points>],
   "section_scores": {{
     "Summary": <integer 0-100>,
     "Experience": <integer 0-100>,
@@ -396,19 +396,26 @@ Return this exact JSON structure:
     "Missing": <integer>
   }},
   "extracted_info": {{
-    "technical_skills": [<list of strings>],
-    "soft_skills": [<list of strings>],
-    "experience": [<list of strings>],
-    "education": [<list of strings>],
-    "certifications": [<list of strings>],
-    "projects": [<list of strings>]
+    "technical_skills": [<max 8 items>],
+    "soft_skills": [<max 5 items>],
+    "experience": [<max 3 items>],
+    "education": [<max 2 items>],
+    "certifications": [<max 3 items>],
+    "projects": [<max 3 items>]
+},
   }},
   "resume_summary": "<2-3 sentence professional assessment>",
   "grammar_suggestions": [<list of strings>],
   "improvement_suggestions": [<list of strings>],
   "recommendation": "<one of: Strong Match, Moderate Match, Weak Match>",
   "recommendation_reason": "<1-2 sentences explaining the recommendation>"
-}}"""
+  }}
+
+IMPORTANT:
+Return concise JSON only.
+Limit every list to a maximum of 5 items.
+Ensure the JSON is fully closed.
+"""
 
 
 def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url: str) -> dict:
