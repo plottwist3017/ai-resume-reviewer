@@ -461,37 +461,37 @@ def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url:
 
 
 def parse_json_response(raw: str) -> dict:
-    raw = raw.replace("```json", "")
-    raw = raw.replace("```", "")
-    raw = raw.strip()
+    """Extract and parse JSON from watsonx response."""
+    raw = re.sub(r"```(?:json)?", "", raw).strip().rstrip("`").strip()
 
-    start = raw.find("{")
-
-    if start == -1:
-        raise Exception("No JSON found")
-
-    json_text = raw[start:]
-
+    # Normal JSON parse
     try:
-        return json.loads(json_text)
-
+        return json.loads(raw)
     except json.JSONDecodeError:
-        # emergency repair for truncated JSON
-        json_text = json_text.rstrip()
+        pass
 
-        while json_text and json_text[-1] not in ["}", "]"]:
-            json_text = json_text[:-1]
+    # Extract JSON object
+    match = re.search(r"\{[\s\S]*", raw)
+    if match:
+        cleaned = match.group()
 
-        json_text += "\n}" 
+        # Try closing missing brackets
+        cleaned = cleaned.rstrip()
+
+        open_braces = cleaned.count("{") - cleaned.count("}")
+        open_brackets = cleaned.count("[") - cleaned.count("]")
+
+        cleaned += "]" * max(0, open_brackets)
+        cleaned += "}" * max(0, open_braces)
 
         try:
-            return json.loads(json_text)
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            pass
 
-        except:
-            raise Exception(
-                "AI response was incomplete.\n\nReceived:\n"
-                + raw[:1500]
-            )
+    raise Exception(
+        "AI response was incomplete.\n\nReceived:\n" + raw[:1500]
+    )
 
 # ──────────────────────────────────────────────
 # Plotly chart helpers
