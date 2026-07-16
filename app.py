@@ -147,10 +147,16 @@ st.markdown("""
 # ──────────────────────────────────────────────
 # Configuration helpers
 # ──────────────────────────────────────────────
-WATSONX_URL      = os.getenv("WATSONX_URL", "https://ca-tor.ml.cloud.ibm.com")
+WATSONX_URL = os.getenv(
+    "WATSONX_URL",
+    "https://us-south.ml.cloud.ibm.com"
+)
 WATSONX_API_KEY  = os.getenv("WATSONX_API_KEY", "")
 WATSONX_PROJECT  = os.getenv("WATSONX_PROJECT_ID", "")
-WATSONX_MODEL    = os.getenv("WATSONX_MODEL_ID", "meta-llama/llama-3-3-70b-instruct")
+WATSONX_MODEL = os.getenv(
+    "WATSONX_MODEL_ID",
+    "ibm/granite-3-8b-instruct"
+)
 IAM_URL          = "https://iam.cloud.ibm.com/identity/token"
 
 
@@ -281,72 +287,71 @@ Return this exact JSON structure:
 
 
 def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url: str) -> dict:
-    """Call IBM watsonx.ai text generation endpoint and return parsed JSON."""
+    """Call IBM watsonx.ai and return structured JSON analysis."""
+
     token = get_iam_token(api_key)
 
     endpoint = f"{url.rstrip('/')}/ml/v1/text/generation?version=2023-05-29"
+
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
+
     payload = {
         "model_id": model_id,
         "project_id": project_id,
         "input": prompt,
         "parameters": {
             "decoding_method": "greedy",
-            "max_new_tokens": 2000,
-            "min_new_tokens": 200,
-            "stop_sequences": [],
-            "temperature": 0.2,
+            "max_new_tokens": 3000,
+            "temperature": 0.1,
         },
     }
 
-    resp = requests.post(endpoint, headers=headers, json=payload, timeout=120)
-    resp.raise_for_status()
+    response = requests.post(
+        endpoint,
+        headers=headers,
+        json=payload,
+        timeout=120,
+    )
 
-    raw_text = resp.json()["results"][0]["generated_text"].strip()
-    return parse_json_response(raw_text)
+    response.raise_for_status()
+
+    data = response.json()
+
+    if "results" not in data:
+        raise Exception(f"Unexpected IBM response: {data}")
+
+    generated_text = data["results"][0]["generated_text"]
+
+    return parse_json_response(generated_text)
 
 
 def parse_json_response(raw: str) -> dict:
-    """Extract and parse the JSON block from the model response."""
-    # Strip markdown code fences if present
-    raw = re.sub(r"```(?:json)?", "", raw).strip().rstrip("`").strip()
+    """Extract JSON from IBM watsonx response."""
 
-    # Try direct parse
+    cleaned = raw.strip()
+
+    cleaned = cleaned.replace("```json", "")
+    cleaned = cleaned.replace("```", "")
+    cleaned = cleaned.strip()
+
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+
+    if start != -1 and end != -1:
+        cleaned = cleaned[start:end + 1]
+
     try:
-        return json.loads(raw)
+        return json.loads(cleaned)
+
     except json.JSONDecodeError:
-        pass
-
-    # Try to extract the first {...} block
-    match = re.search(r"\{[\s\S]*\}", raw)
-    if match:
-        try:
-            return json.loads(match.group())
-        except json.JSONDecodeError:
-            pass
-
-    # Return a graceful fallback
-    return {
-        "overall_score": 0,
-        "ats_score": 0,
-        "skills_match_percent": 0,
-        "missing_keywords": [],
-        "strengths": ["Analysis could not be fully parsed — please retry."],
-        "weaknesses": [],
-        "section_scores": {"Summary": 0, "Experience": 0, "Education": 0, "Skills": 0, "Formatting": 0, "Keywords": 0},
-        "skills_by_category": {"Technical Skills": 0, "Soft Skills": 0, "Domain Knowledge": 0, "Tools & Platforms": 0},
-        "keyword_coverage": {"Present": 0, "Missing": 0},
-        "extracted_info": {"technical_skills": [], "soft_skills": [], "experience": [], "education": [], "certifications": [], "projects": []},
-        "resume_summary": raw[:500] if raw else "No summary available.",
-        "grammar_suggestions": [],
-        "improvement_suggestions": [],
-        "recommendation": "Weak Match",
-        "recommendation_reason": "Could not parse structured response from the model.",
-    }
+        raise Exception(
+            "IBM watsonx did not return valid JSON.\n\n"
+            f"Response received:\n{raw[:1000]}"
+        )
 
 
 # ──────────────────────────────────────────────
