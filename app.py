@@ -33,113 +33,238 @@ st.set_page_config(
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
-  /* Base */
-  [data-testid="stAppViewContainer"] { background: #f0f4f8; }
-  [data-testid="stHeader"] { background: transparent; }
-  [data-testid="block-container"] { padding-top: 1rem; padding-bottom: 2rem; }
 
-  /* Cards */
+  /* =========================
+     GLOBAL APP COLORS
+  ========================== */
+
+  [data-testid="stAppViewContainer"] {
+      background: #f0f4f8;
+      color: #1e293b;
+  }
+
+  [data-testid="stHeader"] {
+      background: transparent;
+  }
+
+  [data-testid="block-container"] {
+      padding-top: 1rem;
+      padding-bottom: 2rem;
+  }
+
+  html, body, [class*="css"] {
+      color: #1e293b !important;
+  }
+
+  p, span, div, label {
+      color: #1e293b;
+  }
+
+  .stMarkdown {
+      color: #1e293b !important;
+  }
+
+  /* Inputs */
+  textarea, input {
+      color: #1e293b !important;
+      background-color: white !important;
+  }
+
+  textarea::placeholder,
+  input::placeholder {
+      color: #94a3b8 !important;
+  }
+
+
+  /* =========================
+     CARDS
+  ========================== */
+
   .card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 1.4rem 1.6rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,.07);
-    margin-bottom: 1rem;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.07);
+      margin-bottom: 1rem;
   }
+
   .card-title {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    margin-bottom: .4rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #64748b !important;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: .4rem;
   }
+
   .card-value {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #1e293b;
-    line-height: 1;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #1e293b !important;
+      line-height: 1;
   }
+
   .card-sub {
-    font-size: 0.8rem;
-    color: #9ca3af;
-    margin-top: .3rem;
+      font-size: 0.8rem;
+      color: #94a3b8 !important;
+      margin-top: .3rem;
   }
 
-  /* Hero */
+
+  /* =========================
+     HERO SECTION
+  ========================== */
+
   .hero {
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #60a5fa 100%);
-    border-radius: 16px;
-    padding: 2.4rem 2.8rem;
-    color: white;
-    margin-bottom: 1.6rem;
+      background: linear-gradient(
+          135deg,
+          #1e40af 0%,
+          #3b82f6 60%,
+          #60a5fa 100%
+      );
+
+      border-radius: 16px;
+      padding: 2.4rem 2.8rem;
+      color: white !important;
+      margin-bottom: 1.6rem;
   }
-  .hero h1 { font-size: 2.2rem; font-weight: 800; margin: 0 0 .4rem; }
-  .hero p  { font-size: 1.05rem; opacity: .88; margin: 0 0 1rem; }
+
+  .hero h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: white !important;
+      margin: 0 0 .4rem;
+  }
+
+  .hero p {
+      font-size: 1.05rem;
+      color: white !important;
+      opacity: .88;
+      margin: 0 0 1rem;
+  }
+
   .badge {
-    display: inline-block;
-    background: rgba(255,255,255,.18);
-    border: 1px solid rgba(255,255,255,.35);
-    border-radius: 20px;
-    padding: .28rem .9rem;
-    font-size: .78rem;
-    font-weight: 600;
-    letter-spacing: .04em;
-    backdrop-filter: blur(4px);
+      display: inline-block;
+      background: rgba(255,255,255,.18);
+      color: white !important;
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 20px;
+      padding: .28rem .9rem;
+      font-size: .78rem;
+      font-weight: 600;
   }
 
-  /* Section headings */
+
+  /* =========================
+     HEADINGS
+  ========================== */
+
   .section-heading {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin: 1.2rem 0 .6rem;
-    border-left: 4px solid #3b82f6;
-    padding-left: .65rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b !important;
+      margin: 1.2rem 0 .6rem;
+      border-left: 4px solid #3b82f6;
+      padding-left: .65rem;
   }
 
-  /* Tags */
+
+  /* =========================
+     TAGS
+  ========================== */
+
   .tag {
-    display: inline-block;
-    background: #eff6ff;
-    color: #1d4ed8;
-    border-radius: 6px;
-    padding: .18rem .6rem;
-    font-size: .77rem;
-    font-weight: 600;
-    margin: .2rem .2rem .2rem 0;
+      display: inline-block;
+      background: #eff6ff;
+      color: #1d4ed8 !important;
+      border-radius: 6px;
+      padding: .18rem .6rem;
+      font-size: .77rem;
+      font-weight: 600;
+      margin: .2rem .2rem .2rem 0;
   }
+
   .tag-warn {
-    background: #fff7ed;
-    color: #c2410c;
+      background: #fff7ed;
+      color: #c2410c !important;
   }
+
   .tag-ok {
-    background: #f0fdf4;
-    color: #15803d;
+      background: #f0fdf4;
+      color: #15803d !important;
   }
 
-  /* Recommendation banner */
-  .rec-strong { background:#dcfce7; border-left:5px solid #16a34a; border-radius:10px; padding:1rem 1.2rem; }
-  .rec-moderate { background:#fef9c3; border-left:5px solid #ca8a04; border-radius:10px; padding:1rem 1.2rem; }
-  .rec-weak { background:#fee2e2; border-left:5px solid #dc2626; border-radius:10px; padding:1rem 1.2rem; }
 
-  /* Divider */
-  hr.light { border: none; border-top: 1px solid #e5e7eb; margin: .8rem 0; }
+  /* =========================
+     RECOMMENDATIONS
+  ========================== */
 
-  /* Streamlit overrides */
-  div[data-testid="stFileUploader"] > label { font-weight: 600; }
+  .rec-strong {
+      background:#dcfce7;
+      color:#166534;
+      border-left:5px solid #16a34a;
+      border-radius:10px;
+      padding:1rem 1.2rem;
+  }
+
+  .rec-moderate {
+      background:#fef9c3;
+      color:#854d0e;
+      border-left:5px solid #ca8a04;
+      border-radius:10px;
+      padding:1rem 1.2rem;
+  }
+
+  .rec-weak {
+      background:#fee2e2;
+      color:#991b1b;
+      border-left:5px solid #dc2626;
+      border-radius:10px;
+      padding:1rem 1.2rem;
+  }
+
+
+  /* =========================
+     BUTTONS
+  ========================== */
+
   div.stButton > button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: .6rem 1.8rem;
-    font-weight: 600;
-    font-size: 1rem;
-    width: 100%;
-    transition: background .2s;
+
+      background:#2563eb !important;
+      color:white !important;
+
+      border:none;
+      border-radius:8px;
+
+      padding:.6rem 1.8rem;
+
+      font-weight:600;
+      font-size:1rem;
+
+      width:100%;
   }
-  div.stButton > button:hover { background: #1d4ed8; }
+
+
+  div.stButton > button:hover {
+      background:#1d4ed8 !important;
+      color:white !important;
+  }
+
+
+  /* File uploader */
+  div[data-testid="stFileUploader"] label {
+      color:#1e293b !important;
+      font-weight:600;
+  }
+
+
+  /* Download buttons */
+  div[data-testid="stDownloadButton"] button {
+      color:white !important;
+      background:#2563eb !important;
+  }
+
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -236,12 +361,12 @@ Analyze the following resume against the job description provided. Return ONLY v
 
 Resume:
 \"\"\"
-{resume_text[:6000]}
+{resume_text[:3000]}
 \"\"\"
 
 Job Description:
 \"\"\"
-{job_description[:3000]}
+{job_description[:1500]}
 \"\"\"
 
 Return this exact JSON structure:
@@ -305,7 +430,7 @@ def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url:
         "input": prompt,
         "parameters": {
             "decoding_method": "greedy",
-            "max_new_tokens": 3000,
+            "max_new_tokens": 5000,
             "temperature": 0.1,
         },
     }
@@ -336,22 +461,31 @@ def parse_json_response(raw: str) -> dict:
 
     cleaned = cleaned.replace("```json", "")
     cleaned = cleaned.replace("```", "")
-    cleaned = cleaned.strip()
 
     start = cleaned.find("{")
     end = cleaned.rfind("}")
 
-    if start != -1 and end != -1:
-        cleaned = cleaned[start:end + 1]
+    if start != -1:
+        cleaned = cleaned[start:]
+
+    if end != -1:
+        cleaned = cleaned[:end + 1]
 
     try:
         return json.loads(cleaned)
 
     except json.JSONDecodeError:
-        raise Exception(
-            "IBM watsonx did not return valid JSON.\n\n"
-            f"Response received:\n{raw[:1000]}"
-        )
+
+        # Try repairing incomplete JSON
+        try:
+            repaired = cleaned + "}"
+            return json.loads(repaired)
+
+        except:
+            raise Exception(
+                "AI response was incomplete.\n\n"
+                f"Received:\n{raw[:1000]}"
+            )
 
 
 # ──────────────────────────────────────────────
