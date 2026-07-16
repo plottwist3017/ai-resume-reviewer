@@ -445,7 +445,7 @@ def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url:
         endpoint,
         headers=headers,
         json=payload,
-        timeout=120,
+        timeout=180,
     )
 
     response.raise_for_status()
