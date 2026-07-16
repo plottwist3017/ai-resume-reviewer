@@ -361,12 +361,12 @@ Analyze the following resume against the job description provided. Return ONLY v
 
 Resume:
 \"\"\"
-{resume_text[:3000]}
+{resume_text[:2000]}
 \"\"\"
 
 Job Description:
 \"\"\"
-{job_description[:1500]}
+{job_description[:800]}
 \"\"\"
 
 Return this exact JSON structure:
@@ -436,7 +436,7 @@ def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url:
         "input": prompt,
         "parameters": {
             "decoding_method": "greedy",
-            "max_new_tokens": 8000,
+            "max_new_tokens": 2500,
             "temperature": 0.1,
         },
     }
