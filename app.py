@@ -402,7 +402,6 @@ Return this exact JSON structure:
     "education": [<max 2 items>],
     "certifications": [<max 3 items>],
     "projects": [<max 3 items>]
-},
   }},
   "resume_summary": "<2-3 sentence professional assessment>",
   "grammar_suggestions": [<list of strings>],
