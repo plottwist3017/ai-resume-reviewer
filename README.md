@@ -140,7 +140,3 @@ back gracefully if the model produces partial output.
   Set `do_ocr=True` in `extract_text_docling()` to enable OCR (slower).
 
 ---
-
-## 📄 License
-
-MIT — free to use, modify, and distribute.
