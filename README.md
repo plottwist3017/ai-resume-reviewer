@@ -1,142 +1,188 @@
 # 📄 AI Resume Reviewer
 
-A production-ready Streamlit web application that uses **IBM watsonx.ai** and **IBM Docling** to
-give candidates an instant, AI-powered review of their resume against a target job description.
+> AI-powered ATS resume analyzer built with **Streamlit**, **IBM watsonx.ai**, and **IBM Docling**.
 
-> Think of it as a lightweight [Jobscan](https://jobscan.co) / [Resume Worded](https://resumeworded.com)
-> — upload a PDF, paste a job description, and get a full ATS analysis in seconds.
+## 🎥 Demo
 
----
+<p align="center">
+  <img src="assets/demo.gif" width="900" alt="Application Demo">
+</p>
 
-## ✨ Features
+Or watch the full demo:
 
-| Feature | Details |
-|---|---|
-| **PDF Extraction** | IBM Docling converts any text-based PDF into clean text (markdown-level fidelity) |
-| **AI Analysis** | IBM watsonx.ai (Granite / Llama models) produces a structured JSON evaluation |
-| **ATS Scoring** | Overall Score (0–100), ATS Score (0–100), Skills Match (%) |
-| **Keyword Gap** | Identifies missing keywords from the job description |
-| **Section Scores** | Individual scores for Summary, Experience, Education, Skills, Formatting, Keywords |
-| **Visualisations** | Gauge charts, radar chart, bar chart, donut chart, strengths-vs-weaknesses chart (Plotly) |
-| **Extracted Info** | Technical skills, soft skills, experience, education, certifications, projects |
-| **Recommendations** | Strengths, weaknesses, grammar tips, actionable improvement list |
-| **Final Verdict** | Strong Match / Moderate Match / Weak Match with rationale |
-| **Export** | Download as PDF report, CSV spreadsheet, or raw JSON |
+https://github.com/yourusername/ai-resume-reviewer/assets/...
 
 ---
 
-## 🚀 Quick Start
+## 🚀 What it does
 
-### 1 — Clone / copy the project
+Upload a resume (PDF) and compare it against a job description to receive an instant AI-powered ATS review including:
 
-```bash
-git clone <your-repo-url>
-cd ai-resume-reviewer
+- 📊 ATS Compatibility Score
+- 🎯 Skills Match Percentage
+- 🔍 Missing Keywords Detection
+- 📑 Section-by-Section Resume Analysis
+- 📈 Interactive Dashboard & Charts
+- 💡 Personalized Improvement Suggestions
+- 📄 Export to PDF, CSV, or JSON
+
+---
+
+## 🖼 Preview
+
+*(Optional screenshots here)*
+
+| Dashboard | Analysis |
+|-----------|----------|
+| screenshot | screenshot |
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend:** Streamlit
+- **AI:** IBM watsonx.ai (Granite / Llama)
+- **Document Parsing:** IBM Docling
+- **Visualization:** Plotly
+- **Reports:** FPDF2
+- **Data:** Pandas
+
+---
+
+## ⚡ Features
+
+| Feature | Description |
+|----------|-------------|
+| PDF Extraction | IBM Docling converts resumes into structured text |
+| AI Analysis | watsonx.ai evaluates resume against a JD |
+| ATS Score | Overall ATS compatibility score |
+| Keyword Gap | Finds missing keywords |
+| Skill Match | Technical & soft skills comparison |
+| Dashboard | Gauge, radar, donut & bar charts |
+| Export | PDF, CSV & JSON |
+
+---
+
+## 📂 Project Structure
+
+```text
+ai-resume-reviewer/
+│
+├── app.py
+├── requirements.txt
+├── .env.example
+├── assets/
+│   ├── demo.gif
+│   ├── dashboard.png
+│   └── analysis.png
+└── README.md
 ```
 
-### 2 — Create and activate a virtual environment
+---
+
+## 🚀 Installation
 
 ```bash
+git clone https://github.com/yourusername/ai-resume-reviewer.git
+
+cd ai-resume-reviewer
+
 python -m venv .venv
-# Windows
+```
+
+Windows
+
+```bash
 .venv\Scripts\activate
-# macOS / Linux
+```
+
+Mac/Linux
+
+```bash
 source .venv/bin/activate
 ```
 
-### 3 — Install dependencies
+Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> **Note:** IBM Docling downloads ML model weights on first run (~1–2 GB).
-> An internet connection is required the first time.
-
-### 4 — Configure credentials
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and fill in your values:
+Create `.env`
 
 ```env
-WATSONX_API_KEY=<your IBM Cloud API key>
-WATSONX_PROJECT_ID=<your watsonx.ai project ID>
+WATSONX_API_KEY=...
+WATSONX_PROJECT_ID=...
 WATSONX_URL=https://us-south.ml.cloud.ibm.com
 WATSONX_MODEL_ID=ibm/granite-13b-instruct-v2
 ```
 
-### 5 — Run the application
+Run
 
 ```bash
 streamlit run app.py
 ```
 
-Open `http://localhost:8501` in your browser.
+---
+
+## 🔑 IBM watsonx.ai Setup
+
+1. Create an IBM Cloud account.
+2. Provision the **watsonx.ai** service.
+3. Create a Project.
+4. Copy the Project ID.
+5. Generate an API Key.
 
 ---
 
-## 🔑 Getting IBM watsonx.ai Credentials
+## 🧠 AI Workflow
 
-1. Create a free IBM Cloud account at [cloud.ibm.com](https://cloud.ibm.com)
-2. Provision the **watsonx.ai** service
-3. Create a **Project** in [watsonx.ai](https://dataplatform.cloud.ibm.com/wx)
-4. Go to **Manage → General** and copy the **Project ID**
-5. In IBM Cloud → **Manage → Access (IAM) → API Keys**, create an API key
-
----
-
-## 🗂 Project Structure
-
+```text
+Resume PDF
+      │
+      ▼
+ IBM Docling
+      │
+      ▼
+ Extracted Text
+      │
+      ▼
+Job Description
+      │
+      ▼
+IBM watsonx.ai
+      │
+      ▼
+Structured JSON Analysis
+      │
+      ▼
+Dashboard + Reports
 ```
-ai-resume-reviewer/
-├── app.py              # Main Streamlit application (single-file)
-├── requirements.txt    # Python dependencies
-├── .env.example        # Environment variable template
-└── README.md           # This file
-```
 
 ---
 
-## 🧠 AI Prompt Design
+## 📦 Export Formats
 
-The application sends a structured prompt to watsonx.ai requesting a JSON-only response with:
-
-- Numeric scores (0–100) for overall quality, ATS compatibility, and skills match
-- Categorised skill coverage scores
-- Keyword presence / absence analysis
-- Section-by-section scores with labels
-- Lists of strengths, weaknesses, missing keywords, and improvement actions
-- Grammar suggestions
-- A final recommendation (`Strong Match` / `Moderate Match` / `Weak Match`)
-
-The response is parsed with a robust JSON extractor that strips markdown code fences and falls
-back gracefully if the model produces partial output.
+- PDF Report
+- CSV Summary
+- JSON Output
 
 ---
 
-## 📦 Dependencies
-
-| Package | Purpose |
-|---|---|
-| `streamlit` | Web UI framework |
-| `docling` | IBM PDF-to-text extraction |
-| `requests` | IBM watsonx.ai REST API calls |
-| `python-dotenv` | `.env` credential loading |
-| `pandas` | Data manipulation for CSV export |
-| `plotly` | Interactive dashboard charts |
-| `fpdf2` | PDF report generation |
+assets/
+├── demo.gif
+├── dashboard.png
+├── upload.png
+├── report.png
+└── workflow.png
 
 ---
 
 ## ⚠️ Notes
 
-- Resume text is **not stored** anywhere — all processing is in-memory for the session.
-- The application does not use a database or authentication.
-- AI-generated feedback is guidance only — always review suggestions critically.
-- For scanned (image-based) PDFs, Docling's OCR pipeline may produce lower-quality extraction.
-  Set `do_ocr=True` in `extract_text_docling()` to enable OCR (slower).
+- No resume data is stored.
+- Processing is session-only.
+- OCR can be enabled for scanned PDFs.
+- AI recommendations should be reviewed manually.
 
 ---
