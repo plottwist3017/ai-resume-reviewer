@@ -321,30 +321,43 @@ def get_iam_token(api_key: str) -> str:
 # ──────────────────────────────────────────────
 # PDF text extraction — IBM Docling
 # ──────────────────────────────────────────────
+@st.cache_resource(show_spinner=False)
+def get_docling_converter():
+    """Cache the DocumentConverter to avoid reloading models on every analysis run."""
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+    from docling.datamodel.pipeline_options import PdfPipelineOptions
+    from docling.datamodel.base_models import InputFormat
+
+    # Lightweight configuration to save RAM on Streamlit Cloud
+    pipeline_options = PdfPipelineOptions()
+    pipeline_options.do_ocr = False  # Resumes are mostly digital PDFs, OCR uses ~1GB+ extra RAM
+    pipeline_options.do_table_structure = False  # Set to False if memory stays tight
+
+    return DocumentConverter(
+        format_options={
+            InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
+        }
+    )
+
 def extract_text_docling(pdf_bytes: bytes) -> str:
     """Extract text from a PDF using IBM Docling."""
     try:
-        from docling.document_converter import DocumentConverter
-        from docling.datamodel.pipeline_options import PdfPipelineOptions
-        from docling.document_converter import PdfFormatOption
+        converter = get_docling_converter()
 
-        pipeline_options = PdfPipelineOptions()
-        pipeline_options.do_ocr = False
-        pipeline_options.do_table_structure = True
-
-        converter = DocumentConverter(
-            format_options={"pdf": PdfFormatOption(pipeline_options=pipeline_options)}
-        )
-
+        # Write bytes to temp file for Docling processing
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             tmp.write(pdf_bytes)
             tmp_path = tmp.name
 
         result = converter.convert(tmp_path)
-        os.unlink(tmp_path)
+        os.unlink(tmp_path)  # Clean up temp file
 
         text = result.document.export_to_markdown()
         return text.strip()
+
+    except Exception as exc:
+        st.warning(f"Docling extraction encountered an issue: {exc}. Using fallback extraction.")
+        return extract_text_fallback(pdf_bytes)
 
     except ImportError:
         st.warning("IBM Docling is not installed. Falling back to basic PDF text extraction.")
