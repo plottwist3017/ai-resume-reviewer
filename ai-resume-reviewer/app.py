@@ -1,6 +1,5 @@
 """
 AI Resume Reviewer — Powered by Groq (Llama 3.3 70B) & IBM Docling
-Clean Dark Mode UI (No Style Corruption & Fixed Duplicate Uploaders)
 """
 
 import os
