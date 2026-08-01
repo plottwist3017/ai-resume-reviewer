@@ -2,7 +2,7 @@
 
 > **AI-Powered ATS Resume Reviewer & Keyword Analysis Platform**
 
-An intelligent resume optimization platform that leverages **IBM Docling**, **Groq Llama 3.3 70B**, and **interactive analytics** to evaluate resumes against job descriptions. The application provides ATS compatibility scores, keyword gap analysis, resume section evaluation, and actionable recommendations to help job seekers improve their chances of landing interviews.
+An intelligent resume optimization platform that leverages **IBM Docling**, **Groq Llama 3.3 70B**, and **interactive analytics** to evaluate resumes against job descriptions. 
 
 ---
 
