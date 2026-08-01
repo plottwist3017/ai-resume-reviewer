@@ -23,91 +23,100 @@ st.set_page_config(
 )
 
 # ──────────────────────────────────────────────
-# High-Contrast CSS Styling
+# Sleek Dark Mode CSS
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
-  /* Force global dark crisp text */
-  html, body, [class*="st-"], .stMarkdown, p, span, li, div {
-      color: #0f172a !important;
-      font-weight: 500;
+  /* App Background */
+  [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+      background-color: #0b0f19 !important;
   }
   
-  [data-testid="stAppViewContainer"] {
-      background-color: #f8fafc;
+  /* Global Typography - High Contrast White & Off-White */
+  html, body, [class*="st-"], .stMarkdown, p, span, li, label, h1, h2, h3, h4 {
+      color: #f8fafc !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
-  
-  /* Metric Cards */
+
+  /* Sleek Glassmorphic Metric Cards */
   .card {
-      background: #ffffff;
-      border-radius: 10px;
-      padding: 1.1rem 1.3rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-      border: 2px solid #cbd5e1;
+      background: #161e2e;
+      border-radius: 14px;
+      padding: 1.2rem 1.4rem;
+      border: 1px solid #273549;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   }
   
   .card-title {
-      font-size: 0.85rem;
-      font-weight: 800;
-      color: #1e293b !important;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8 !important;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.3rem;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
   }
   
   .card-value {
-      font-size: 2.4rem;
-      font-weight: 900;
+      font-size: 2.3rem;
+      font-weight: 800;
       line-height: 1;
   }
 
-  /* High-Contrast Hero Banner */
+  /* Sleek Header Banner */
   .hero {
-      background: #1e3a8a;
-      border-radius: 12px;
-      padding: 1.8rem;
-      color: #ffffff !important;
-      margin-bottom: 1.4rem;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 16px;
+      padding: 2rem 2.2rem;
+      border: 1px solid #334155;
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+      margin-bottom: 1.5rem;
   }
   
   .hero h1 {
       color: #ffffff !important;
       margin: 0;
       font-size: 2.2rem;
-      font-weight: 900;
+      font-weight: 800;
+      letter-spacing: -0.02em;
   }
   
   .hero p {
-      color: #f8fafc !important;
+      color: #94a3b8 !important;
       margin: 0.4rem 0 0 0;
-      font-size: 1.05rem;
+      font-size: 1rem;
   }
 
-  /* Section Headings */
-  h1, h2, h3, h4 {
-      color: #020617 !important;
-      font-weight: 800 !important;
-  }
-
-  /* Tab styling for high readability */
-  button[data-baseweb="tab"] {
-      font-weight: 700 !important;
-      font-size: 1rem !important;
-      color: #0f172a !important;
-  }
-
-  div.stButton > button {
-      background: #2563eb !important;
+  /* Dark Inputs & Text Areas */
+  div[data-baseweb="input"] > div, div[data-baseweb="textarea"] > div {
+      background-color: #161e2e !important;
+      border-color: #273549 !important;
       color: #ffffff !important;
-      border: none;
-      border-radius: 8px;
-      padding: 0.7rem 1.8rem;
+  }
+  
+  /* Primary Action Button */
+  div.stButton > button {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid #3b82f6 !important;
+      border-radius: 10px;
+      padding: 0.75rem 1.8rem;
       font-weight: 700;
-      font-size: 1.1rem;
-      width: 100%;
+      font-size: 1rem;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+      transition: all 0.2s ease;
   }
   div.stButton > button:hover {
-      background: #1d4ed8 !important;
+      box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6);
+  }
+
+  /* Tabs Styling */
+  button[data-baseweb="tab"] {
+      font-weight: 600 !important;
+      font-size: 0.95rem !important;
+      color: #94a3b8 !important;
+  }
+  button[aria-selected="true"] {
+      color: #38bdf8 !important;
   }
 </style>
 """, unsafe_allow_html=True)
@@ -202,32 +211,38 @@ Output MUST be valid JSON with this EXACT key structure:
 
 
 # ──────────────────────────────────────────────
-# High-Contrast Plot Helpers
+# Dark Mode Visual Charts
 # ──────────────────────────────────────────────
 def make_gauge_chart(score: int) -> go.Figure:
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=score,
-        title={"text": "Overall Score Match", "font": {"size": 16, "color": "#0f172a"}},
-        number={"font": {"size": 36, "color": "#020617"}},
+        title={"text": "Overall Match Score", "font": {"size": 14, "color": "#94a3b8"}},
+        number={"font": {"size": 34, "color": "#ffffff"}},
         gauge={
-            "axis": {"range": [0, 100], "tickcolor": "#0f172a"},
-            "bar": {"color": "#1d4ed8"},
+            "axis": {"range": [0, 100], "tickcolor": "#475569"},
+            "bar": {"color": "#38bdf8"},
+            "bgcolor": "#161e2e",
+            "borderwidth": 0,
             "steps": [
-                {"range": [0, 40], "color": "#fca5a5"},
-                {"range": [40, 70], "color": "#fde047"},
-                {"range": [70, 100], "color": "#86efac"}
+                {"range": [0, 40], "color": "#451a1a"},
+                {"range": [40, 70], "color": "#42380e"},
+                {"range": [70, 100], "color": "#143823"}
             ]
         }
     ))
-    fig.update_layout(height=220, margin=dict(t=30, b=10, l=25, r=25), paper_bgcolor="#ffffff")
+    fig.update_layout(
+        height=210, 
+        margin=dict(t=30, b=10, l=25, r=25), 
+        paper_bgcolor="#161e2e",
+        plot_bgcolor="#161e2e"
+    )
     return fig
 
 def make_single_radar(scores_dict: dict) -> go.Figure:
     categories = list(scores_dict.keys())
     values = list(scores_dict.values())
     
-    # Close the polygon loop
     categories += [categories[0]]
     values += [values[0]]
 
@@ -235,19 +250,20 @@ def make_single_radar(scores_dict: dict) -> go.Figure:
         r=values,
         theta=categories,
         fill="toself",
-        fillcolor="rgba(37, 99, 235, 0.3)",
-        line=dict(color="#1d4ed8", width=3),
-        marker=dict(size=8, color="#0f172a")
+        fillcolor="rgba(56, 189, 248, 0.2)",
+        line=dict(color="#38bdf8", width=2),
+        marker=dict(size=6, color="#60a5fa")
     ))
     fig.update_layout(
         polar=dict(
-            radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(size=11, color="#0f172a")),
-            angularaxis=dict(tickfont=dict(size=12, color="#0f172a"))
+            radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(size=10, color="#94a3b8"), gridcolor="#273549"),
+            angularaxis=dict(tickfont=dict(size=11, color="#f8fafc")),
+            bgcolor="#161e2e"
         ),
         showlegend=False,
-        height=250,
+        height=230,
         margin=dict(t=20, b=20, l=40, r=40),
-        paper_bgcolor="#ffffff"
+        paper_bgcolor="#161e2e"
     )
     return fig
 
@@ -258,15 +274,15 @@ def make_single_radar(scores_dict: dict) -> go.Figure:
 def main():
     st.markdown("""
     <div class="hero">
-      <h1>📄 AI Resume Analyzer</h1>
-      <p>Instant scoring, ATS keyword analysis, and actionable feedback.</p>
+      <h1>📄 AI Resume Reviewer</h1>
+      <p>Instant ATS evaluation, structural analysis, and skill gap identification.</p>
     </div>
     """, unsafe_allow_html=True)
 
     default_key = st.secrets.get("GROQ_API_KEY", os.getenv("GROQ_API_KEY", ""))
 
     with st.sidebar:
-        st.header("⚙️ Settings")
+        st.header("⚙️ Configuration")
         api_key = st.text_input("Groq API Key", value=default_key, type="password")
         model_id = st.selectbox("Model", ["llama-3.3-70b-versatile", "llama3-8b-8192"])
 
@@ -274,7 +290,7 @@ def main():
     with col1:
         uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
     with col2:
-        job_desc = st.text_area("Paste Job Requirements", height=130)
+        job_desc = st.text_area("Paste Job Requirements", height=130, placeholder="Paste job requirements here...")
 
     if st.button("🔍 Analyze Resume", use_container_width=True):
         if not uploaded_file or not job_desc.strip():
@@ -284,7 +300,7 @@ def main():
             st.error("Groq API Key is required.")
             st.stop()
 
-        with st.spinner("Extracting text and running evaluation..."):
+        with st.spinner("Analyzing resume content..."):
             pdf_bytes = uploaded_file.read()
             text = extract_text_docling(pdf_bytes)
             if not text:
@@ -299,13 +315,13 @@ def main():
     # ──────────────────────────────────────────────
     res = st.session_state.get("analysis_res")
     if not res:
-        st.info("Upload a resume and click 'Analyze Resume' to see results.")
+        st.info("Upload a resume and click 'Analyze Resume' to display results.")
         return
 
     st.markdown("---")
-    st.subheader("📊 Executive Summary")
+    st.markdown("### 📊 Executive Overview")
 
-    # 1. Bold Metric Cards Row
+    # 1. Dark Mode Metric Cards
     c1, c2, c3, c4 = st.columns(4)
     overall = res.get("overall_score", 0)
     ats = res.get("ats_score", 0)
@@ -313,19 +329,19 @@ def main():
     missing_kws = res.get("missing_keywords", [])
 
     with c1:
-        st.markdown(f'<div class="card"><div class="card-title">Overall Score</div><div class="card-value" style="color:#1d4ed8">{overall}%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card"><div class="card-title">Overall Match</div><div class="card-value" style="color:#60a5fa">{overall}%</div></div>', unsafe_allow_html=True)
     with c2:
-        st.markdown(f'<div class="card"><div class="card-title">ATS Match</div><div class="card-value" style="color:#15803d">{ats}%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card"><div class="card-title">ATS Readiness</div><div class="card-value" style="color:#4ade80">{ats}%</div></div>', unsafe_allow_html=True)
     with c3:
-        st.markdown(f'<div class="card"><div class="card-title">Skills Match</div><div class="card-value" style="color:#0369a1">{skills}%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card"><div class="card-title">Skills Match</div><div class="card-value" style="color:#38bdf8">{skills}%</div></div>', unsafe_allow_html=True)
     with c4:
-        st.markdown(f'<div class="card"><div class="card-title">Missing Keywords</div><div class="card-value" style="color:#b91c1c">{len(missing_kws)}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card"><div class="card-title">Missing Keywords</div><div class="card-value" style="color:#f87171">{len(missing_kws)}</div></div>', unsafe_allow_html=True)
 
     st.markdown("")
     st.info(f"**Recommendation:** {res.get('recommendation', 'N/A')} — {res.get('recommendation_reason', '')}")
 
-    # 2. Charts Row
-    st.subheader("📈 Visual Breakdown")
+    # 2. Visual Charts Row
+    st.markdown("### 📈 Visual Breakdown")
     chart_col1, chart_col2 = st.columns(2)
 
     with chart_col1:
@@ -336,27 +352,27 @@ def main():
         if sec_scores:
             st.plotly_chart(make_single_radar(sec_scores), use_container_width=True, config={"displayModeBar": False})
 
-    # 3. Compact Details in Tabs
-    st.subheader("📝 Analysis Details")
-    tab1, tab2, tab3 = st.tabs(["🎯 Strengths & Weaknesses", "⚠️ Missing Keywords", "📋 Extracted Details"])
+    # 3. Tabbed Details
+    st.markdown("### 📝 Detailed Insights")
+    tab1, tab2, tab3 = st.tabs(["🎯 Strengths & Growth", "⚠️ Missing Keywords", "📋 Extracted Details"])
 
     with tab1:
         col_s, col_w = st.columns(2)
         with col_s:
-            st.markdown("### Key Strengths")
+            st.markdown("**Key Strengths**")
             for item in res.get("strengths", []):
-                st.write(f"• **{item}**")
+                st.write(f"• {item}")
         with col_w:
-            st.markdown("### Areas for Improvement")
+            st.markdown("**Areas for Improvement**")
             for item in res.get("weaknesses", []):
-                st.write(f"• **{item}**")
+                st.write(f"• {item}")
 
     with tab2:
         if missing_kws:
-            st.markdown("### Target Keywords")
+            st.write("Target keywords identified from the job requirements:")
             st.write(" ".join([f"`{kw}`" for kw in missing_kws]))
         else:
-            st.success("No missing key terms found!")
+            st.success("No critical missing keywords identified.")
 
     with tab3:
         ext = res.get("extracted_info", {})
@@ -364,10 +380,10 @@ def main():
         st.write("**Soft Skills:**", ", ".join(ext.get("soft_skills", [])))
         st.write("**Education:**", ", ".join(ext.get("education", [])))
 
-    # 4. Action Items Expander
-    with st.expander("💡 View Recommended Resume Edits"):
+    # 4. Action Items Collapsible
+    with st.expander("💡 Actionable Edit Recommendations"):
         for sug in res.get("improvement_suggestions", []):
-            st.write(f"👉 **{sug}**")
+            st.write(f"👉 {sug}")
 
 if __name__ == "__main__":
     main()
