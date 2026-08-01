@@ -1,5 +1,6 @@
 """
 AI Resume Reviewer — Powered by Groq (Llama 3.3 70B) & IBM Docling
+Clean Dark Mode UI (No Style Corruption & Fixed Duplicate Uploaders)
 """
 
 import os
@@ -23,90 +24,66 @@ st.set_page_config(
 )
 
 # ──────────────────────────────────────────────
-# Sleek Dark Mode CSS
+# Targeted Dark Mode CSS (Prevents Icon Corruption)
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
   /* App Background */
-  [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+  .stAppViewContainer, .stHeader {
       background-color: #0b0f19 !important;
   }
   
-  /* Global Typography - High Contrast White & Off-White */
-  html, body, [class*="st-"], .stMarkdown, p, span, li, label, h1, h2, h3, h4 {
-      color: #f8fafc !important;
+  /* Targeted Text Styling (Preserves native icons/arrows) */
+  .stMarkdown, p, span, label, h1, h2, h3, h4 {
+      color: #f8fafc;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
 
-  /* Sleek Glassmorphic Metric Cards */
-  .card {
+  /* Metric Cards */
+  .metric-card {
       background: #161e2e;
-      border-radius: 14px;
-      padding: 1.2rem 1.4rem;
+      border-radius: 12px;
+      padding: 1.2rem;
       border: 1px solid #273549;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      margin-bottom: 0.5rem;
   }
   
-  .card-title {
+  .metric-title {
       font-size: 0.75rem;
       font-weight: 700;
-      color: #94a3b8 !important;
+      color: #94a3b8;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       margin-bottom: 0.4rem;
   }
   
-  .card-value {
-      font-size: 2.3rem;
+  .metric-value {
+      font-size: 2.2rem;
       font-weight: 800;
       line-height: 1;
   }
 
-  /* Sleek Header Banner */
-  .hero {
+  /* Header Banner */
+  .hero-box {
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      border-radius: 16px;
-      padding: 2rem 2.2rem;
+      border-radius: 14px;
+      padding: 1.8rem 2rem;
       border: 1px solid #334155;
-      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
       margin-bottom: 1.5rem;
   }
   
-  .hero h1 {
+  .hero-box h1 {
       color: #ffffff !important;
       margin: 0;
-      font-size: 2.2rem;
+      font-size: 2.1rem;
       font-weight: 800;
-      letter-spacing: -0.02em;
   }
   
-  .hero p {
+  .hero-box p {
       color: #94a3b8 !important;
       margin: 0.4rem 0 0 0;
-      font-size: 1rem;
-  }
-
-  /* Dark Inputs & Text Areas */
-  div[data-baseweb="input"] > div, div[data-baseweb="textarea"] > div {
-      background-color: #161e2e !important;
-      border-color: #273549 !important;
-      color: #ffffff !important;
-  }
-  
-  /* Primary Action Button */
-  div.stButton > button {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-      color: #ffffff !important;
-      border: 1px solid #3b82f6 !important;
-      border-radius: 10px;
-      padding: 0.75rem 1.8rem;
-      font-weight: 700;
-      font-size: 1rem;
-      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
-      transition: all 0.2s ease;
-  }
-  div.stButton > button:hover {
-      box-shadow: 0 6px 24px rgba(37, 99, 235, 0.6);
+      font-size: 0.95rem;
   }
 
   /* Tabs Styling */
@@ -153,7 +130,7 @@ def extract_text_fallback(pdf_bytes: bytes) -> str:
 
 
 # ──────────────────────────────────────────────
-# Groq Inference (Strict JSON Schema)
+# Groq Inference
 # ──────────────────────────────────────────────
 def call_groq_analysis(resume_text: str, job_description: str, api_key: str, model_id: str) -> dict:
     from groq import Groq
@@ -273,7 +250,7 @@ def make_single_radar(scores_dict: dict) -> go.Figure:
 # ──────────────────────────────────────────────
 def main():
     st.markdown("""
-    <div class="hero">
+    <div class="hero-box">
       <h1>📄 AI Resume Reviewer</h1>
       <p>Instant ATS evaluation, structural analysis, and skill gap identification.</p>
     </div>
@@ -283,16 +260,18 @@ def main():
 
     with st.sidebar:
         st.header("⚙️ Configuration")
-        api_key = st.text_input("Groq API Key", value=default_key, type="password")
-        model_id = st.selectbox("Model", ["llama-3.3-70b-versatile", "llama3-8b-8192"])
+        api_key = st.text_input("Groq API Key", value=default_key, type="password", key="groq_key_input")
+        model_id = st.selectbox("Model", ["llama-3.3-70b-versatile", "llama3-8b-8192"], key="model_select")
 
     col1, col2 = st.columns(2)
     with col1:
-        uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
+        uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"], key="resume_pdf_uploader")
     with col2:
-        job_desc = st.text_area("Paste Job Requirements", height=130, placeholder="Paste job requirements here...")
+        job_desc = st.text_area("Paste Job Requirements", height=130, placeholder="Paste job requirements here...", key="job_desc_input")
 
-    if st.button("🔍 Analyze Resume", use_container_width=True):
+    analyze_clicked = st.button("🔍 Analyze Resume", use_container_width=True, type="primary", key="analyze_action_btn")
+
+    if analyze_clicked:
         if not uploaded_file or not job_desc.strip():
             st.error("Please provide both a PDF resume and job description.")
             st.stop()
@@ -321,7 +300,7 @@ def main():
     st.markdown("---")
     st.markdown("### 📊 Executive Overview")
 
-    # 1. Dark Mode Metric Cards
+    # Metric Cards
     c1, c2, c3, c4 = st.columns(4)
     overall = res.get("overall_score", 0)
     ats = res.get("ats_score", 0)
@@ -329,18 +308,18 @@ def main():
     missing_kws = res.get("missing_keywords", [])
 
     with c1:
-        st.markdown(f'<div class="card"><div class="card-title">Overall Match</div><div class="card-value" style="color:#60a5fa">{overall}%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">Overall Match</div><div class="metric-value" style="color:#60a5fa">{overall}%</div></div>', unsafe_allow_html=True)
     with c2:
-        st.markdown(f'<div class="card"><div class="card-title">ATS Readiness</div><div class="card-value" style="color:#4ade80">{ats}%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">ATS Readiness</div><div class="metric-value" style="color:#4ade80">{ats}%</div></div>', unsafe_allow_html=True)
     with c3:
-        st.markdown(f'<div class="card"><div class="card-title">Skills Match</div><div class="card-value" style="color:#38bdf8">{skills}%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">Skills Match</div><div class="metric-value" style="color:#38bdf8">{skills}%</div></div>', unsafe_allow_html=True)
     with c4:
-        st.markdown(f'<div class="card"><div class="card-title">Missing Keywords</div><div class="card-value" style="color:#f87171">{len(missing_kws)}</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="metric-card"><div class="metric-title">Missing Keywords</div><div class="metric-value" style="color:#f87171">{len(missing_kws)}</div></div>', unsafe_allow_html=True)
 
     st.markdown("")
     st.info(f"**Recommendation:** {res.get('recommendation', 'N/A')} — {res.get('recommendation_reason', '')}")
 
-    # 2. Visual Charts Row
+    # Visual Charts Row
     st.markdown("### 📈 Visual Breakdown")
     chart_col1, chart_col2 = st.columns(2)
 
@@ -352,7 +331,7 @@ def main():
         if sec_scores:
             st.plotly_chart(make_single_radar(sec_scores), use_container_width=True, config={"displayModeBar": False})
 
-    # 3. Tabbed Details
+    # Tabbed Details
     st.markdown("### 📝 Detailed Insights")
     tab1, tab2, tab3 = st.tabs(["🎯 Strengths & Growth", "⚠️ Missing Keywords", "📋 Extracted Details"])
 
@@ -380,7 +359,7 @@ def main():
         st.write("**Soft Skills:**", ", ".join(ext.get("soft_skills", [])))
         st.write("**Education:**", ", ".join(ext.get("education", [])))
 
-    # 4. Action Items Collapsible
+    # Action Items Collapsible
     with st.expander("💡 Actionable Edit Recommendations"):
         for sug in res.get("improvement_suggestions", []):
             st.write(f"👉 {sug}")
