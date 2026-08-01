@@ -18,6 +18,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Support Streamlit Cloud secrets as fallback
+def _secret(key: str, default: str = "") -> str:
+    """Read from st.secrets first (Streamlit Cloud), then env vars."""
+    try:
+        return st.secrets.get(key, os.getenv(key, default))
+    except Exception:
+        return os.getenv(key, default)
+
 # ──────────────────────────────────────────────
 # Page configuration
 # ──────────────────────────────────────────────
@@ -147,10 +155,10 @@ st.markdown("""
 # ──────────────────────────────────────────────
 # Configuration helpers
 # ──────────────────────────────────────────────
-WATSONX_URL      = os.getenv("WATSONX_URL", "https://us-south.ml.cloud.ibm.com")
-WATSONX_API_KEY  = os.getenv("WATSONX_API_KEY", "")
-WATSONX_PROJECT  = os.getenv("WATSONX_PROJECT_ID", "")
-WATSONX_MODEL    = os.getenv("WATSONX_MODEL_ID", "meta-llama/llama-3-3-70b-instruct")
+WATSONX_URL      = _secret("WATSONX_URL", "https://ca-tor.ml.cloud.ibm.com")
+WATSONX_API_KEY  = _secret("WATSONX_API_KEY", "")
+WATSONX_PROJECT  = _secret("WATSONX_PROJECT_ID", "")
+WATSONX_MODEL    = _secret("WATSONX_MODEL_ID", "meta-llama/llama-3-3-70b-instruct")
 IAM_URL          = "https://iam.cloud.ibm.com/identity/token"
 
 
