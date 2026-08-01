@@ -5,3 +5,5 @@ pandas>=2.1.0
 plotly>=5.18.0
 docling>=2.0.0
 fpdf2>=2.7.0
+opencv-python-headless
+pypdf
