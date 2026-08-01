@@ -8,11 +8,9 @@ An intelligent resume optimization platform that leverages **IBM Docling**, **Gr
 
 ## 🌟 Overview
 
-Recruiters often receive hundreds of applications for a single role. Before a recruiter ever reads a resume, it is commonly filtered by an Applicant Tracking System (ATS). Many qualified candidates are rejected simply because their resumes fail to align with ATS expectations.
+Recruiters often rely on Applicant Tracking Systems (ATS) to screen resumes before they reach human reviewers. Many strong candidates are filtered out due to poor ATS optimization.
 
-**AI Resume Reviewer** bridges this gap by combining modern document parsing, large language models, and data visualization into a single application that delivers meaningful insights within seconds.
-
-The platform goes beyond simple keyword matching by evaluating resume structure, technical skills, experience quality, section completeness, and overall ATS readiness.
+**AI Resume Reviewer** uses AI-powered document analysis to evaluate resume structure, skills, experience, and ATS readiness, providing actionable feedback in seconds.
 
 ---
 
