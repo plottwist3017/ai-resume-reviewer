@@ -16,7 +16,7 @@ Recruiters often rely on Applicant Tracking Systems (ATS) to screen resumes befo
 
 ## 🎥 Demo
 
-![Demo](App_demo.gif)
+![Demo](Demo.gif)
 
 ---
 
