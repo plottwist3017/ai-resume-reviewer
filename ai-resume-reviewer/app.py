@@ -41,25 +41,95 @@ st.set_page_config(
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
-  /* Base */
-  [data-testid="stAppViewContainer"] { background: #f0f4f8; }
-  [data-testid="stHeader"] { background: transparent; }
-  [data-testid="block-container"] { padding-top: 1rem; padding-bottom: 2rem; }
+  /* ── Palette ──────────────────────────────────
+     bg:        #f8fafc   (page background, very light grey-blue)
+     surface:   #ffffff   (cards, inputs)
+     border:    #e2e8f0   (borders, dividers)
+     text-main: #1e293b   (headings, values)
+     text-sub:  #64748b   (labels, captions)
+     accent:    #2563eb   (primary blue — buttons, accents)
+     accent-lt: #eff6ff   (light blue tint for tags)
+     success:   #15803d / #f0fdf4
+     warning:   #b45309 / #fffbeb
+     danger:    #dc2626 / #fef2f2
+  ─────────────────────────────────────────────── */
 
-  /* Cards */
+  /* Base */
+  [data-testid="stAppViewContainer"] { background: #f8fafc; }
+  [data-testid="stHeader"]           { background: transparent; }
+  [data-testid="block-container"]    { padding-top: 1rem; padding-bottom: 2rem; }
+
+  /* Force all Streamlit text to be dark so nothing disappears */
+  [data-testid="stAppViewContainer"] p,
+  [data-testid="stAppViewContainer"] span,
+  [data-testid="stAppViewContainer"] label,
+  [data-testid="stAppViewContainer"] div { color: #1e293b; }
+
+  /* Widget labels — always dark */
+  .stFileUploader label,
+  .stTextArea   label,
+  .stTextInput  label,
+  .stSelectbox  label,
+  [data-testid="stWidgetLabel"] { color: #1e293b !important; font-weight: 600; }
+
+  /* Caption / helper text */
+  [data-testid="stCaptionContainer"] p { color: #64748b !important; font-size: .8rem; }
+
+  /* Input + textarea backgrounds */
+  textarea, input[type="text"], input[type="password"] {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+  }
+  textarea:focus, input[type="text"]:focus, input[type="password"]:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.12) !important;
+  }
+
+  /* File uploader box */
+  [data-testid="stFileUploader"] {
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    padding: .8rem 1rem;
+  }
+  [data-testid="stFileUploader"]:hover { border-color: #2563eb; }
+  [data-testid="stFileUploaderDropzone"] p,
+  [data-testid="stFileUploaderDropzone"] span { color: #64748b !important; }
+
+  /* Selectbox */
+  [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    color: #1e293b !important;
+  }
+
+  /* Sidebar */
+  [data-testid="stSidebar"] {
+    background: #ffffff;
+    border-right: 1px solid #e2e8f0;
+  }
+  [data-testid="stSidebar"] p,
+  [data-testid="stSidebar"] span,
+  [data-testid="stSidebar"] label { color: #1e293b !important; }
+
+  /* ── Card component ── */
   .card {
     background: #ffffff;
     border-radius: 12px;
+    border: 1px solid #e2e8f0;
     padding: 1.4rem 1.6rem;
-    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
     margin-bottom: 1rem;
   }
   .card-title {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
     text-transform: uppercase;
-    letter-spacing: .06em;
+    letter-spacing: .07em;
     margin-bottom: .4rem;
   }
   .card-value {
@@ -70,43 +140,61 @@ st.markdown("""
   }
   .card-sub {
     font-size: 0.8rem;
-    color: #9ca3af;
+    color: #94a3b8;
     margin-top: .3rem;
   }
 
-  /* Hero */
+  /* ── Input panel (white container behind upload + JD widgets) ── */
+  .input-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.4rem 1.6rem 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    margin-bottom: 1rem;
+  }
+  .panel-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: .8rem;
+  }
+
+  /* ── Hero ── */
   .hero {
-    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 60%, #60a5fa 100%);
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
     border-radius: 16px;
     padding: 2.4rem 2.8rem;
-    color: white;
+    color: #ffffff;
     margin-bottom: 1.6rem;
   }
-  .hero h1 { font-size: 2.2rem; font-weight: 800; margin: 0 0 .4rem; }
-  .hero p  { font-size: 1.05rem; opacity: .88; margin: 0 0 1rem; }
+  .hero h1 { font-size: 2.2rem; font-weight: 800; margin: 0 0 .4rem; color: #ffffff; }
+  .hero p  { font-size: 1.05rem; opacity: .9; margin: 0 0 1rem; color: #ffffff; }
   .badge {
     display: inline-block;
-    background: rgba(255,255,255,.18);
-    border: 1px solid rgba(255,255,255,.35);
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3);
     border-radius: 20px;
     padding: .28rem .9rem;
     font-size: .78rem;
     font-weight: 600;
     letter-spacing: .04em;
-    backdrop-filter: blur(4px);
+    color: #ffffff;
   }
 
-  /* Section headings */
+  /* ── Section headings ── */
   .section-heading {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #1e293b;
-    margin: 1.2rem 0 .6rem;
-    border-left: 4px solid #3b82f6;
+    margin: 1.4rem 0 .7rem;
+    border-left: 4px solid #2563eb;
     padding-left: .65rem;
   }
 
-  /* Tags */
+  /* ── Tags ── */
   .tag {
     display: inline-block;
     background: #eff6ff;
@@ -117,37 +205,60 @@ st.markdown("""
     font-weight: 600;
     margin: .2rem .2rem .2rem 0;
   }
-  .tag-warn {
-    background: #fff7ed;
-    color: #c2410c;
-  }
-  .tag-ok {
-    background: #f0fdf4;
-    color: #15803d;
-  }
+  .tag-warn { background: #fffbeb; color: #b45309; }
+  .tag-ok   { background: #f0fdf4; color: #15803d; }
 
-  /* Recommendation banner */
-  .rec-strong { background:#dcfce7; border-left:5px solid #16a34a; border-radius:10px; padding:1rem 1.2rem; }
-  .rec-moderate { background:#fef9c3; border-left:5px solid #ca8a04; border-radius:10px; padding:1rem 1.2rem; }
-  .rec-weak { background:#fee2e2; border-left:5px solid #dc2626; border-radius:10px; padding:1rem 1.2rem; }
+  /* ── Recommendation banners ── */
+  .rec-strong   { background:#f0fdf4; border-left:5px solid #16a34a; border-radius:10px; padding:1rem 1.2rem; }
+  .rec-strong   h3 { color:#15803d !important; }
+  .rec-strong   p  { color:#166534 !important; }
+  .rec-moderate { background:#fffbeb; border-left:5px solid #d97706; border-radius:10px; padding:1rem 1.2rem; }
+  .rec-moderate h3 { color:#b45309 !important; }
+  .rec-moderate p  { color:#92400e !important; }
+  .rec-weak     { background:#fef2f2; border-left:5px solid #dc2626; border-radius:10px; padding:1rem 1.2rem; }
+  .rec-weak     h3 { color:#dc2626 !important; }
+  .rec-weak     p  { color:#991b1b !important; }
 
-  /* Divider */
-  hr.light { border: none; border-top: 1px solid #e5e7eb; margin: .8rem 0; }
-
-  /* Streamlit overrides */
-  div[data-testid="stFileUploader"] > label { font-weight: 600; }
+  /* ── Button ── */
   div.stButton > button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: .6rem 1.8rem;
-    font-weight: 600;
-    font-size: 1rem;
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: .6rem 1.8rem !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
     width: 100%;
-    transition: background .2s;
   }
-  div.stButton > button:hover { background: #1d4ed8; }
+  div.stButton > button:hover { background: #1d4ed8 !important; }
+
+  /* ── Success / info / error message text ── */
+  [data-testid="stAlert"] p { color: inherit !important; }
+
+  /* ── Expander ── */
+  [data-testid="stExpander"] summary span { color: #1e293b !important; font-weight: 600; }
+
+  /* ── st.container(border=True) — override Streamlit's default border with ours ── */
+  [data-testid="stVerticalBlockBorderWrapper"] {
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05) !important;
+    padding: .2rem .4rem !important;
+  }
+
+  /* Download buttons consistent with palette */
+  [data-testid="stDownloadButton"] button {
+    background: #ffffff !important;
+    color: #2563eb !important;
+    border: 1.5px solid #2563eb !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    width: 100%;
+  }
+  [data-testid="stDownloadButton"] button:hover {
+    background: #eff6ff !important;
+  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -696,30 +807,28 @@ def main():
     col_up, col_jd = st.columns([1, 1], gap="large")
 
     with col_up:
-        st.markdown('<div class="section-heading">Resume Upload</div>', unsafe_allow_html=True)
-        with st.container():
-            st.markdown('<div class="card">', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown('<p class="panel-label">📄 Resume Upload</p>', unsafe_allow_html=True)
             uploaded_file = st.file_uploader(
-                "Upload Resume (PDF)",
+                "Upload your PDF resume",
                 type=["pdf"],
                 help="Upload a single PDF resume. IBM Docling will extract all text.",
+                label_visibility="collapsed",
             )
             if uploaded_file:
                 st.success(f"✅ **{uploaded_file.name}** — {uploaded_file.size / 1024:.1f} KB")
-            st.markdown('</div>', unsafe_allow_html=True)
 
     with col_jd:
-        st.markdown('<div class="section-heading">Job Description</div>', unsafe_allow_html=True)
-        with st.container():
-            st.markdown('<div class="card">', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown('<p class="panel-label">📋 Job Description</p>', unsafe_allow_html=True)
             job_desc = st.text_area(
                 "Paste the Job Description",
-                height=180,
-                placeholder="Paste the full job description here including required skills, responsibilities, and qualifications...",
+                height=200,
+                placeholder="Paste the full job description here — required skills, responsibilities, qualifications…",
+                label_visibility="collapsed",
             )
             jd_word_count = len(job_desc.split()) if job_desc else 0
             st.caption(f"{jd_word_count} words")
-            st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Analyze button ─────────────────────────
     st.markdown("")
@@ -839,22 +948,16 @@ def main():
     gc1, gc2, gc3 = st.columns(3, gap="medium")
 
     with gc1:
-        with st.container():
-            st.markdown('<div class="card" style="padding:.8rem">', unsafe_allow_html=True)
+        with st.container(border=True):
             st.plotly_chart(gauge_chart(overall, "Overall Score", score_color(overall)), use_container_width=True, config=CHART_CONFIG)
-            st.markdown('</div>', unsafe_allow_html=True)
 
     with gc2:
-        with st.container():
-            st.markdown('<div class="card" style="padding:.8rem">', unsafe_allow_html=True)
+        with st.container(border=True):
             st.plotly_chart(gauge_chart(ats, "ATS Score", score_color(ats)), use_container_width=True, config=CHART_CONFIG)
-            st.markdown('</div>', unsafe_allow_html=True)
 
     with gc3:
-        with st.container():
-            st.markdown('<div class="card" style="padding:.8rem">', unsafe_allow_html=True)
+        with st.container(border=True):
             st.plotly_chart(gauge_chart(skills, "Skills Match %", score_color(skills)), use_container_width=True, config=CHART_CONFIG)
-            st.markdown('</div>', unsafe_allow_html=True)
 
     # ── Charts row 2 ──────────────────────────
     ch1, ch2 = st.columns(2, gap="medium")
@@ -864,46 +967,42 @@ def main():
     kw_coverage    = result.get("keyword_coverage", {"Present": 0, "Missing": 0})
 
     with ch1:
-        st.markdown('<div class="card" style="padding:.8rem">', unsafe_allow_html=True)
-        if section_scores:
-            fig = bar_chart(
-                list(section_scores.keys()),
-                list(section_scores.values()),
-                "Resume Section Scores",
-                color=COLORS_BLUE[0],
-            )
-            st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            if section_scores:
+                fig = bar_chart(
+                    list(section_scores.keys()),
+                    list(section_scores.values()),
+                    "Resume Section Scores",
+                    color=COLORS_BLUE[0],
+                )
+                st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
 
     with ch2:
-        st.markdown('<div class="card" style="padding:.8rem">', unsafe_allow_html=True)
-        if skills_by_cat:
-            fig = radar_chart(list(skills_by_cat.keys()), list(skills_by_cat.values()))
-            st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            if skills_by_cat:
+                fig = radar_chart(list(skills_by_cat.keys()), list(skills_by_cat.values()))
+                st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
 
     # ── Charts row 3 ──────────────────────────
     ch3, ch4 = st.columns(2, gap="medium")
 
     with ch3:
-        st.markdown('<div class="card" style="padding:.8rem">', unsafe_allow_html=True)
-        if kw_coverage:
-            fig = donut_chart(
-                list(kw_coverage.keys()),
-                list(kw_coverage.values()),
-                "Keyword Coverage",
-            )
-            st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            if kw_coverage:
+                fig = donut_chart(
+                    list(kw_coverage.keys()),
+                    list(kw_coverage.values()),
+                    "Keyword Coverage",
+                )
+                st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
 
     with ch4:
-        st.markdown('<div class="card" style="padding:.8rem">', unsafe_allow_html=True)
-        strengths  = result.get("strengths", [])
-        weaknesses = result.get("weaknesses", [])
-        if strengths or weaknesses:
-            fig = sw_bar_chart(strengths, weaknesses)
-            st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            strengths  = result.get("strengths", [])
+            weaknesses = result.get("weaknesses", [])
+            if strengths or weaknesses:
+                fig = sw_bar_chart(strengths, weaknesses)
+                st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
 
     # ── Extracted info table ───────────────────
     st.markdown('<div class="section-heading">📋 Extracted Resume Information</div>', unsafe_allow_html=True)
@@ -922,14 +1021,13 @@ def main():
     for i, (label, key, icon) in enumerate(ei_fields):
         with ei_cols[i % 3]:
             items = extracted.get(key, [])
-            st.markdown(f'<div class="card">', unsafe_allow_html=True)
-            st.markdown(f"**{icon} {label}**")
-            if items:
-                tags_html = " ".join(f'<span class="tag">{t}</span>' for t in items[:12])
-                st.markdown(tags_html, unsafe_allow_html=True)
-            else:
-                st.caption("None identified.")
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown(f"**{icon} {label}**")
+                if items:
+                    tags_html = " ".join(f'<span class="tag">{t}</span>' for t in items[:12])
+                    st.markdown(tags_html, unsafe_allow_html=True)
+                else:
+                    st.caption("None identified.")
 
     # ── AI Feedback sections ───────────────────
     st.markdown('<div class="section-heading">🧠 AI Feedback</div>', unsafe_allow_html=True)
@@ -938,55 +1036,49 @@ def main():
 
     with fb1:
         # Summary
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("**📝 Resume Summary**")
-        st.write(result.get("resume_summary", ""))
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**📝 Resume Summary**")
+            st.write(result.get("resume_summary", ""))
 
         # Strengths
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("**✅ Resume Strengths**")
-        for s in strengths:
-            st.markdown(f'<span class="tag tag-ok">✓</span> {s}', unsafe_allow_html=True)
-            st.markdown("")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**✅ Resume Strengths**")
+            for s in strengths:
+                st.markdown(f'<span class="tag tag-ok">✓</span> {s}', unsafe_allow_html=True)
+                st.markdown("")
 
         # Grammar
         grammar = result.get("grammar_suggestions", [])
         if grammar:
-            st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown("**✍️ Grammar & Wording Suggestions**")
-            for g in grammar:
-                st.markdown(f"- {g}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown("**✍️ Grammar & Wording Suggestions**")
+                for g in grammar:
+                    st.markdown(f"- {g}")
 
     with fb2:
         # Weaknesses
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("**⚠️ Areas for Improvement**")
-        for w in weaknesses:
-            st.markdown(f'<span class="tag tag-warn">!</span> {w}', unsafe_allow_html=True)
-            st.markdown("")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**⚠️ Areas for Improvement**")
+            for w in weaknesses:
+                st.markdown(f'<span class="tag tag-warn">!</span> {w}', unsafe_allow_html=True)
+                st.markdown("")
 
         # Missing keywords
         mk = result.get("missing_keywords", [])
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("**🔑 Missing Keywords**")
-        if mk:
-            tags_html = " ".join(f'<span class="tag tag-warn">{kw}</span>' for kw in mk)
-            st.markdown(tags_html, unsafe_allow_html=True)
-        else:
-            st.markdown('<span class="tag tag-ok">None missing — great keyword coverage!</span>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**🔑 Missing Keywords**")
+            if mk:
+                tags_html = " ".join(f'<span class="tag tag-warn">{kw}</span>' for kw in mk)
+                st.markdown(tags_html, unsafe_allow_html=True)
+            else:
+                st.markdown('<span class="tag tag-ok">None missing — great keyword coverage!</span>', unsafe_allow_html=True)
 
         # Improvements
         improvements = result.get("improvement_suggestions", [])
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("**💡 Actionable Improvements**")
-        for idx_i, imp in enumerate(improvements, 1):
-            st.markdown(f"**{idx_i}.** {imp}")
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**💡 Actionable Improvements**")
+            for idx_i, imp in enumerate(improvements, 1):
+                st.markdown(f"**{idx_i}.** {imp}")
 
     # ── Section-by-section scores detail ──────
     st.markdown('<div class="section-heading">📂 Section-by-Section Breakdown</div>', unsafe_allow_html=True)
@@ -1033,51 +1125,48 @@ def main():
     export_cols = st.columns(3, gap="medium")
 
     with export_cols[0]:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("**📄 PDF Report**")
-        st.caption("Full analysis report with scores, feedback, and recommendations.")
-        pdf_bytes = build_pdf_report(result, resume_name)
-        st.download_button(
-            "⬇ Download PDF",
-            data=pdf_bytes,
-            file_name=f"resume_review_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-            mime="application/pdf",
-            use_container_width=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**📄 PDF Report**")
+            st.caption("Full analysis report with scores, feedback, and recommendations.")
+            pdf_bytes = build_pdf_report(result, resume_name)
+            st.download_button(
+                "⬇ Download PDF",
+                data=pdf_bytes,
+                file_name=f"resume_review_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+            )
 
     with export_cols[1]:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("**📊 CSV Export**")
-        st.caption("Scores, keywords, strengths, and suggestions as a spreadsheet.")
-        csv_bytes = build_csv(result)
-        st.download_button(
-            "⬇ Download CSV",
-            data=csv_bytes,
-            file_name=f"resume_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-            mime="text/csv",
-            use_container_width=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**📊 CSV Export**")
+            st.caption("Scores, keywords, strengths, and suggestions as a spreadsheet.")
+            csv_bytes = build_csv(result)
+            st.download_button(
+                "⬇ Download CSV",
+                data=csv_bytes,
+                file_name=f"resume_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                mime="text/csv",
+                use_container_width=True,
+            )
 
     with export_cols[2]:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown("**🗂 JSON Export**")
-        st.caption("Full structured AI response — ideal for integrations and pipelines.")
-        json_str = json.dumps(result, indent=2)
-        st.download_button(
-            "⬇ Download JSON",
-            data=json_str.encode("utf-8"),
-            file_name=f"resume_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.json",
-            mime="application/json",
-            use_container_width=True,
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            st.markdown("**🗂 JSON Export**")
+            st.caption("Full structured AI response — ideal for integrations and pipelines.")
+            json_str = json.dumps(result, indent=2)
+            st.download_button(
+                "⬇ Download JSON",
+                data=json_str.encode("utf-8"),
+                file_name=f"resume_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.json",
+                mime="application/json",
+                use_container_width=True,
+            )
 
     # ── Footer ────────────────────────────────
     st.markdown("""
-    <hr style="border:none;border-top:1px solid #e5e7eb;margin:2rem 0 .8rem">
-    <p style="text-align:center;color:#9ca3af;font-size:.78rem">
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:2rem 0 .8rem">
+    <p style="text-align:center;color:#94a3b8;font-size:.78rem">
       AI Resume Reviewer &nbsp;|&nbsp; Built with IBM watsonx.ai &amp; IBM Docling &nbsp;|&nbsp;
       Results are AI-generated and should be used as guidance, not as definitive assessments.
     </p>
