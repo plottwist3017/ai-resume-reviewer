@@ -297,7 +297,7 @@ def main():
         return
 
     st.markdown("---")
-    st.markdown("### 📊 Executive Overview")
+    st.markdown("### 📊 Resume Scorecard")
 
     # Metric Cards
     c1, c2, c3, c4 = st.columns(4)
