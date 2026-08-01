@@ -18,8 +18,6 @@ The platform goes beyond simple keyword matching by evaluating resume structure,
 
 ## 🎥 Demo
 
-> Add screenshots or GIF below.
-
 ![Demo](App_demo.gif)
 
 ---
