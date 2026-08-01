@@ -1,115 +1,248 @@
 # 📄 AI Resume Reviewer
 
-> AI-powered ATS resume analyzer built with **Streamlit**, **IBM watsonx.ai**, and **IBM Docling**.
+> **AI-Powered ATS Resume Reviewer & Keyword Analysis Platform**
 
-Upload a PDF resume, paste a job description, and get an instant structured analysis — ATS score, keyword gaps, section scores, strengths/weaknesses, and actionable improvement suggestions.
+An intelligent resume optimization platform that leverages **IBM Docling**, **Groq Llama 3.3 70B**, and **interactive analytics** to evaluate resumes against job descriptions. The application provides ATS compatibility scores, keyword gap analysis, resume section evaluation, and actionable recommendations to help job seekers improve their chances of landing interviews.
 
 ---
 
-## 🚀 Quick Start (Local)
+## 🌟 Overview
 
-```bash
-# 1. Clone
-git clone https://github.com/plottwist3017/ai-resume-reviewer
-cd ai-resume-reviewer
+Recruiters often receive hundreds of applications for a single role. Before a recruiter ever reads a resume, it is commonly filtered by an Applicant Tracking System (ATS). Many qualified candidates are rejected simply because their resumes fail to align with ATS expectations.
 
-# 2. Virtual environment
-python -m venv .venv
-.venv\Scripts\activate        # Windows
-# source .venv/bin/activate   # macOS/Linux
+**AI Resume Reviewer** bridges this gap by combining modern document parsing, large language models, and data visualization into a single application that delivers meaningful insights within seconds.
 
-# 3. Install dependencies
-pip install -r requirements.txt
+The platform goes beyond simple keyword matching by evaluating resume structure, technical skills, experience quality, section completeness, and overall ATS readiness.
 
-# 4. Add credentials
-cp .env.example .env
-# Edit .env with your IBM Cloud API key and watsonx.ai Project ID
+---
 
-# 5. Run
-streamlit run app.py
+## 🎥 Demo
+
+> Add screenshots or GIF below.
+
+![Demo](App_demo.gif)
+
+---
+
+# ✨ Features
+
+### 📄 Smart Resume Parsing
+
+- Upload text-based PDF resumes
+- Extract structured markdown using IBM Docling
+- Preserve formatting for better AI understanding
+
+---
+
+### 🎯 ATS Keyword Analysis
+
+- Compare resume against any job description
+- Detect missing skills
+- Highlight absent technologies
+- Measure keyword coverage
+
+---
+
+### 🤖 AI Resume Evaluation
+
+Powered by **Meta Llama 3.3 70B Versatile** via Groq.
+
+The AI analyzes:
+
+- Resume quality
+- Experience relevance
+- Technical skills
+- Education
+- Projects
+- ATS optimization
+- Professional writing quality
+
+---
+
+### 📊 Interactive Analytics Dashboard
+
+Visualize resume performance using Plotly charts including:
+
+- ATS Match Score
+- Resume Readiness Gauge
+- Radar Chart
+- Section-wise Performance
+- Keyword Coverage
+
+---
+
+### 💡 Actionable Suggestions
+
+Receive personalized recommendations including:
+
+- Resume strengths
+- Weak areas
+- Missing keywords
+- Better bullet point suggestions
+- ATS optimization tips
+
+---
+
+### ⚡ Fast AI Inference
+
+Using Groq's ultra-low latency inference engine, evaluations are generated in just a few seconds.
+
+---
+
+# 🏗️ Architecture
+
+```text
+                  PDF Resume
+                       │
+                       ▼
+              IBM Docling Parser
+                       │
+                       ▼
+            Markdown/Text Extraction
+                       │
+                       ▼
+       Resume + Job Description Prompt
+                       │
+                       ▼
+      Groq API (Llama 3.3 70B Versatile)
+                       │
+                       ▼
+          Structured JSON Evaluation
+                       │
+                       ▼
+      Scoring Engine & Keyword Analysis
+                       │
+                       ▼
+      Plotly Dashboard + AI Suggestions
 ```
 
 ---
 
-## 🔑 Credentials
+# 🔍 How It Works
 
-### Running locally — `.env` file
+### Step 1
 
-Copy `.env.example` to `.env` and fill in your values:
-
-```env
-WATSONX_API_KEY=your_ibm_cloud_api_key
-WATSONX_PROJECT_ID=your_watsonx_project_id
-WATSONX_URL=https://ca-tor.ml.cloud.ibm.com
-WATSONX_MODEL_ID=meta-llama/llama-3-3-70b-instruct
-```
-
-### Deployed on Streamlit Community Cloud — Secrets
-
-Go to your app on **share.streamlit.io → ⋮ → Settings → Secrets** and paste:
-
-```toml
-WATSONX_API_KEY = "your_ibm_cloud_api_key"
-WATSONX_PROJECT_ID = "your_watsonx_project_id"
-WATSONX_URL = "https://ca-tor.ml.cloud.ibm.com"
-WATSONX_MODEL_ID = "meta-llama/llama-3-3-70b-instruct"
-```
-
-> ⚠️ Never commit your real `.env` file. It is listed in `.gitignore`.
+Upload a PDF resume.
 
 ---
 
-## ✨ Features
+### Step 2
 
-| Feature | Details |
-|---|---|
-| **PDF Extraction** | IBM Docling converts any text-based PDF to clean markdown-level text |
-| **AI Analysis** | IBM watsonx.ai (Llama / Granite) returns a structured JSON evaluation |
-| **ATS Scoring** | Overall Score, ATS Score, Skills Match % |
-| **Keyword Gap** | Missing keywords identified from the job description |
-| **Section Scores** | Summary, Experience, Education, Skills, Formatting, Keywords |
-| **Visualisations** | Gauge charts, radar chart, bar chart, donut chart (Plotly) |
-| **Extracted Info** | Technical skills, soft skills, experience, education, certifications, projects |
-| **Recommendations** | Strengths, weaknesses, grammar tips, improvement list |
-| **Final Verdict** | Strong / Moderate / Weak Match with rationale |
-| **Export** | Download as PDF report, CSV spreadsheet, or raw JSON |
+Paste the desired job description.
 
 ---
 
-## 📦 Dependencies
+### Step 3
 
-| Package | Purpose |
-|---|---|
-| `streamlit` | Web UI |
-| `docling` | IBM PDF-to-text extraction |
-| `requests` | watsonx.ai REST API calls |
-| `python-dotenv` | `.env` credential loading |
-| `pandas` | CSV export |
-| `plotly` | Interactive charts |
-| `fpdf2` | PDF report generation |
+IBM Docling extracts clean markdown from the uploaded resume.
 
 ---
 
-## 🗂 Project Structure
+### Step 4
 
-```
+The extracted content and job description are sent to the Groq API using a strict JSON schema prompt.
+
+---
+
+### Step 5
+
+The AI returns structured analysis including:
+
+- ATS Match Score
+- Section Scores
+- Missing Keywords
+- Resume Strengths
+- Improvement Suggestions
+
+---
+
+### Step 6
+
+Interactive visualizations display the overall resume quality and ATS readiness.
+
+# 📁 Project Structure
+
+```text
 ai-resume-reviewer/
-├── app.py               # Main Streamlit application
-├── requirements.txt     # Python dependencies
-├── .env.example         # Credential template (copy to .env)
+│
+├── app.py
+├── requirements.txt
+├── README.md
+├── .env.example
+│
 ├── .streamlit/
-│   └── config.toml      # Streamlit server config
-└── README.md
+│   └── config.toml
+│
+├── assets/
+│   ├── Demo.gif
+│   └── screenshots/
+│
+└── utils/
+    ├── parser.py
+    ├── prompt.py
+    ├── charts.py
+    └── evaluator.py
 ```
 
 ---
 
-## ⚠️ Notes
+# 🛠️ Technology Stack
 
-- Resume text is **not stored** — all processing is in-memory per session.
-- For scanned (image-based) PDFs, set `do_ocr=True` in `extract_text_docling()` to enable OCR.
-- AI feedback is guidance only — always review suggestions critically.
+| Category | Technology |
+|------------|------------|
+| Frontend | Streamlit |
+| Language | Python |
+| AI Model | Meta Llama 3.3 70B Versatile |
+| AI Provider | Groq |
+| PDF Parsing | IBM Docling |
+| Environment | Python Dotenv |
+| Charts | Plotly |
+| Data Processing | Pandas |
 
 ---
 
-*MIT License — free to use, modify, and distribute.*
+# 🔐 Privacy
+
+AI Resume Reviewer follows a privacy-first design.
+
+- Resumes are processed only during the active session.
+- Files are not permanently stored.
+- PDF extraction occurs entirely in memory.
+- AI analysis is generated in real time.
+
+---
+
+# 🚀 Future Improvements
+
+- 📄 AI-generated cover letters
+- 📊 Resume version comparison
+- 📁 Export professional PDF reports
+- 🔍 OCR support for scanned resumes
+- 🌐 Multi-language resume analysis
+- 💼 LinkedIn profile optimization
+- 🧠 Industry-specific resume scoring
+- 📈 Resume improvement tracking over time
+
+---
+
+# 👩‍💻 Author
+
+## **Kavya Raval**
+
+**Computer Science Student**
+
+Toronto Metropolitan University
+
+Passionate about building impactful solutions at the intersection of:
+
+- Artificial Intelligence
+- Data Analytics
+- Human-Centered Technology
+
+---
+
+## ⭐ If you found this project useful...
+
+Please consider giving it a **Star ⭐** on GitHub!
+
+It helps support the project and encourages future development.
