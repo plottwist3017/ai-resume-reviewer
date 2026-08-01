@@ -1,5 +1,5 @@
 """
-AI Resume Reviewer — Powered by IBM watsonx.ai & IBM Docling
+AI Resume Reviewer — Powered by Groq (Llama 3.3) & IBM Docling
 A professional Streamlit application for AI-powered resume analysis.
 """
 
@@ -9,16 +9,14 @@ import json
 import re
 import tempfile
 import datetime
-import requests
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 import streamlit as st
 from dotenv import load_dotenv
+from groq import Groq
 
 load_dotenv()
 
-# Support Streamlit Cloud secrets as fallback
 def _secret(key: str, default: str = "") -> str:
     """Read from st.secrets first (Streamlit Cloud), then env vars."""
     try:
@@ -37,301 +35,18 @@ st.set_page_config(
 )
 
 # ──────────────────────────────────────────────
-# Global CSS
-# ──────────────────────────────────────────────
-st.markdown("""
-<style>
-  /* ── DARK PALETTE ─────────────────────────────
-     bg:          #0f1117   page background
-     surface:     #1a1d27   cards / containers
-     surface2:    #212533   inputs / elevated
-     border:      #2e3347   borders
-     text:        #e8eaf0   primary text
-     text-sub:    #8b93a8   muted / labels
-     accent:      #4f8ef7   blue accent
-     accent-dim:  #1e3a6e   blue tinted bg
-     success:     #34d399   green
-     success-dim: #0d2f22   green tinted bg
-     warning:     #fbbf24   amber
-     warning-dim: #2d1f07   amber tinted bg
-     danger:      #f87171   red
-     danger-dim:  #2f0f0f   red tinted bg
-  ────────────────────────────────────────────── */
-
-  /* ── Base ── */
-  [data-testid="stAppViewContainer"] { background: #0f1117 !important; }
-  [data-testid="stHeader"]           { background: #0f1117 !important; }
-  [data-testid="block-container"]    { padding-top: 1rem; padding-bottom: 2rem; }
-  [data-testid="stMain"]             { background: #0f1117 !important; }
-  .main                              { background: #0f1117 !important; }
-
-  /* ── Global text → always light ── */
-  [data-testid="stAppViewContainer"],
-  [data-testid="stAppViewContainer"] p,
-  [data-testid="stAppViewContainer"] span,
-  [data-testid="stAppViewContainer"] li,
-  [data-testid="stAppViewContainer"] h1,
-  [data-testid="stAppViewContainer"] h2,
-  [data-testid="stAppViewContainer"] h3,
-  [data-testid="stAppViewContainer"] h4,
-  [data-testid="stAppViewContainer"] label,
-  [data-testid="stAppViewContainer"] div  { color: #e8eaf0; }
-
-  /* ── Widget labels ── */
-  [data-testid="stWidgetLabel"],
-  [data-testid="stWidgetLabel"] p,
-  .stFileUploader label,
-  .stTextArea   label,
-  .stTextInput  label,
-  .stSelectbox  label { color: #e8eaf0 !important; font-weight: 600; }
-
-  /* ── Captions ── */
-  [data-testid="stCaptionContainer"] p { color: #8b93a8 !important; font-size: .8rem; }
-
-  /* ── Markdown bold/normal text inside containers ── */
-  [data-testid="stMarkdownContainer"] p,
-  [data-testid="stMarkdownContainer"] li,
-  [data-testid="stMarkdownContainer"] strong { color: #e8eaf0 !important; }
-
-  /* ── Inputs & textarea ── */
-  textarea,
-  input[type="text"],
-  input[type="password"] {
-    background: #212533 !important;
-    color: #e8eaf0 !important;
-    border: 1px solid #2e3347 !important;
-    border-radius: 8px !important;
-  }
-  textarea::placeholder,
-  input::placeholder { color: #8b93a8 !important; }
-  textarea:focus,
-  input[type="text"]:focus,
-  input[type="password"]:focus {
-    border-color: #4f8ef7 !important;
-    box-shadow: 0 0 0 3px rgba(79,142,247,.18) !important;
-  }
-
-  /* ── File uploader ── */
-  [data-testid="stFileUploader"] {
-    background: #1a1d27 !important;
-    border: 2px dashed #2e3347 !important;
-    border-radius: 10px !important;
-  }
-  [data-testid="stFileUploader"]:hover { border-color: #4f8ef7 !important; }
-  [data-testid="stFileUploaderDropzone"] *,
-  [data-testid="stFileUploaderDropzone"] p,
-  [data-testid="stFileUploaderDropzone"] span { color: #8b93a8 !important; }
-
-  /* ── Selectbox ── */
-  [data-baseweb="select"] > div,
-  [data-baseweb="select"] > div > div {
-    background: #212533 !important;
-    border: 1px solid #2e3347 !important;
-    border-radius: 8px !important;
-    color: #e8eaf0 !important;
-  }
-  [data-baseweb="popover"] ul,
-  [data-baseweb="menu"]    li {
-    background: #212533 !important;
-    color: #e8eaf0 !important;
-  }
-
-  /* ── Sidebar ── */
-  [data-testid="stSidebar"] {
-    background: #13161f !important;
-    border-right: 1px solid #2e3347 !important;
-  }
-  [data-testid="stSidebar"] *,
-  [data-testid="stSidebar"] p,
-  [data-testid="stSidebar"] span,
-  [data-testid="stSidebar"] label,
-  [data-testid="stSidebar"] div { color: #e8eaf0 !important; }
-
-  /* ── Metric cards (pure HTML) ── */
-  .card {
-    background: #1a1d27;
-    border-radius: 12px;
-    border: 1px solid #2e3347;
-    padding: 1.4rem 1.6rem;
-    margin-bottom: 1rem;
-  }
-  .card-title {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #8b93a8;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin-bottom: .4rem;
-  }
-  .card-value {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #e8eaf0;
-    line-height: 1;
-  }
-  .card-sub { font-size: 0.8rem; color: #8b93a8; margin-top: .3rem; }
-
-  /* ── Panel label (inside upload / JD containers) ── */
-  .panel-label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: #8b93a8 !important;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin: 0 0 .6rem;
-  }
-
-  /* ── Hero ── */
-  .hero {
-    background: linear-gradient(135deg, #0d1b4b 0%, #1e3a8a 50%, #2563eb 100%);
-    border-radius: 16px;
-    border: 1px solid #1e3a8a;
-    padding: 2.4rem 2.8rem;
-    margin-bottom: 1.6rem;
-  }
-  .hero h1 { font-size: 2.2rem; font-weight: 800; margin: 0 0 .4rem; color: #ffffff !important; }
-  .hero p  { font-size: 1.05rem; opacity: .85; margin: 0 0 1rem; color: #c7d2fe !important; }
-  .badge {
-    display: inline-block;
-    background: rgba(79,142,247,.2);
-    border: 1px solid rgba(79,142,247,.4);
-    border-radius: 20px;
-    padding: .28rem .9rem;
-    font-size: .78rem;
-    font-weight: 600;
-    color: #93c5fd !important;
-  }
-
-  /* ── Section headings ── */
-  .section-heading {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #e8eaf0 !important;
-    margin: 1.4rem 0 .7rem;
-    border-left: 4px solid #4f8ef7;
-    padding-left: .65rem;
-  }
-
-  /* ── Tags ── */
-  .tag      { display:inline-block; background:#1e3a6e; color:#93c5fd !important;
-              border-radius:6px; padding:.18rem .6rem; font-size:.77rem;
-              font-weight:600; margin:.2rem .2rem .2rem 0; }
-  .tag-warn { background:#2d1f07; color:#fbbf24 !important; }
-  .tag-ok   { background:#0d2f22; color:#34d399 !important; }
-
-  /* ── Recommendation banners ── */
-  .rec-strong   { background:#0d2f22; border-left:5px solid #34d399; border-radius:10px; padding:1rem 1.2rem; }
-  .rec-strong   h3 { color:#34d399 !important; margin:0 0 .4rem; }
-  .rec-strong   p  { color:#6ee7b7 !important; margin:0; }
-  .rec-moderate { background:#2d1f07; border-left:5px solid #fbbf24; border-radius:10px; padding:1rem 1.2rem; }
-  .rec-moderate h3 { color:#fbbf24 !important; margin:0 0 .4rem; }
-  .rec-moderate p  { color:#fde68a !important; margin:0; }
-  .rec-weak     { background:#2f0f0f; border-left:5px solid #f87171; border-radius:10px; padding:1rem 1.2rem; }
-  .rec-weak     h3 { color:#f87171 !important; margin:0 0 .4rem; }
-  .rec-weak     p  { color:#fca5a5 !important; margin:0; }
-
-  /* ── Analyze button ── */
-  div.stButton > button {
-    background: #4f8ef7 !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: .65rem 1.8rem !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    width: 100%;
-  }
-  div.stButton > button:hover { background: #3b7ef0 !important; }
-
-  /* ── Download buttons ── */
-  [data-testid="stDownloadButton"] button {
-    background: #1a1d27 !important;
-    color: #4f8ef7 !important;
-    border: 1.5px solid #2e3347 !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-    width: 100%;
-  }
-  [data-testid="stDownloadButton"] button:hover {
-    background: #1e3a6e !important;
-    border-color: #4f8ef7 !important;
-    color: #93c5fd !important;
-  }
-
-  /* ── st.container(border=True) ── */
-  [data-testid="stVerticalBlockBorderWrapper"] {
-    background: #1a1d27 !important;
-    border: 1px solid #2e3347 !important;
-    border-radius: 12px !important;
-    padding: .3rem .6rem !important;
-  }
-
-  /* ── Alerts / status messages ── */
-  [data-testid="stAlert"]               { background: #1a1d27 !important; border-radius: 8px !important; }
-  [data-testid="stAlert"] p             { color: #e8eaf0 !important; }
-  .stSuccess                            { background: #0d2f22 !important; }
-  .stInfo                               { background: #1e3a6e !important; }
-  .stError                              { background: #2f0f0f !important; }
-
-  /* ── Expander ── */
-  [data-testid="stExpander"] {
-    background: #1a1d27 !important;
-    border: 1px solid #2e3347 !important;
-    border-radius: 10px !important;
-  }
-  [data-testid="stExpander"] summary,
-  [data-testid="stExpander"] summary span,
-  [data-testid="stExpander"] summary p { color: #e8eaf0 !important; font-weight: 600; }
-
-  /* ── Divider ── */
-  hr { border-color: #2e3347 !important; }
-
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #0f1117; }
-  ::-webkit-scrollbar-thumb { background: #2e3347; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #4f8ef7; }
-</style>
-""", unsafe_allow_html=True)
-
-
-# ──────────────────────────────────────────────
-# Configuration helpers
-# ──────────────────────────────────────────────
-WATSONX_URL      = _secret("WATSONX_URL", "https://ca-tor.ml.cloud.ibm.com")
-WATSONX_API_KEY  = _secret("WATSONX_API_KEY", "")
-WATSONX_PROJECT  = _secret("WATSONX_PROJECT_ID", "")
-WATSONX_MODEL    = _secret("WATSONX_MODEL_ID", "meta-llama/llama-3-3-70b-instruct")
-IAM_URL          = "https://iam.cloud.ibm.com/identity/token"
-
-
-@st.cache_data(ttl=2700, show_spinner=False)
-def get_iam_token(api_key: str) -> str:
-    """Exchange an IBM Cloud API key for a short-lived IAM bearer token."""
-    resp = requests.post(
-        IAM_URL,
-        data={"grant_type": "urn:ibm:params:oauth:grant-type:apikey", "apikey": api_key},
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return resp.json()["access_token"]
-
-
-# ──────────────────────────────────────────────
-# PDF text extraction — IBM Docling
+# PDF text extraction — Cached IBM Docling
 # ──────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
 def get_docling_converter():
-    """Cache the DocumentConverter to avoid reloading models on every analysis run."""
+    """Cache the DocumentConverter to avoid reloading models on every run."""
     from docling.document_converter import DocumentConverter, PdfFormatOption
     from docling.datamodel.pipeline_options import PdfPipelineOptions
     from docling.datamodel.base_models import InputFormat
 
-    # Lightweight configuration to save RAM on Streamlit Cloud
     pipeline_options = PdfPipelineOptions()
-    pipeline_options.do_ocr = False  # Resumes are mostly digital PDFs, OCR uses ~1GB+ extra RAM
-    pipeline_options.do_table_structure = False  # Set to False if memory stays tight
+    pipeline_options.do_ocr = False  # Saves RAM on free-tier servers
+    pipeline_options.do_table_structure = False
 
     return DocumentConverter(
         format_options={
@@ -340,59 +55,41 @@ def get_docling_converter():
     )
 
 def extract_text_docling(pdf_bytes: bytes) -> str:
-    """Extract text from a PDF using IBM Docling."""
+    """Extract text from a PDF using IBM Docling with a fallback."""
     try:
         converter = get_docling_converter()
 
-        # Write bytes to temp file for Docling processing
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
             tmp.write(pdf_bytes)
             tmp_path = tmp.name
 
         result = converter.convert(tmp_path)
-        os.unlink(tmp_path)  # Clean up temp file
+        os.unlink(tmp_path)
 
         text = result.document.export_to_markdown()
         return text.strip()
 
     except Exception as exc:
-        st.warning(f"Docling extraction encountered an issue: {exc}. Using fallback extraction.")
+        st.warning(f"Docling extraction issue: {exc}. Using fallback extraction.")
         return extract_text_fallback(pdf_bytes)
-
-    except ImportError:
-        st.warning("IBM Docling is not installed. Falling back to basic PDF text extraction.")
-        return extract_text_fallback(pdf_bytes)
-    except Exception as exc:
-        st.warning(f"Docling extraction encountered an issue: {exc}. Using fallback extraction.")
-        return extract_text_fallback(pdf_bytes)
-
 
 def extract_text_fallback(pdf_bytes: bytes) -> str:
-    """Fallback: extract text using pypdf if available."""
+    """Fallback text extraction via pypdf."""
     try:
         import pypdf
         reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
         pages = [page.extract_text() or "" for page in reader.pages]
         return "\n".join(pages).strip()
-    except ImportError:
-        pass
-    try:
-        import pdfplumber
-        with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
-            pages = [page.extract_text() or "" for page in pdf.pages]
-        return "\n".join(pages).strip()
-    except ImportError:
-        pass
-    return "[Could not extract text. Please ensure docling or pypdf is installed.]"
-
+    except Exception:
+        return ""
 
 # ──────────────────────────────────────────────
-# IBM watsonx.ai inference
+# Groq Inference
 # ──────────────────────────────────────────────
 def build_analysis_prompt(resume_text: str, job_description: str) -> str:
     return f"""You are an expert resume reviewer and career coach with deep knowledge of ATS systems.
 
-Analyze the following resume against the job description provided. Return ONLY valid JSON with no markdown, no code fences, no extra text.
+Analyze the following resume against the job description provided. Return ONLY valid JSON matching the specified structure.
 
 Resume:
 \"\"\"
@@ -445,778 +142,96 @@ Return this exact JSON structure:
   "recommendation_reason": "<1-2 sentences explaining the recommendation>"
 }}"""
 
-
-def call_watsonx(prompt: str, api_key: str, project_id: str, model_id: str, url: str) -> dict:
-    """Call IBM watsonx.ai text generation endpoint and return parsed JSON."""
-    token = get_iam_token(api_key)
-
-    endpoint = f"{url.rstrip('/')}/ml/v1/text/generation?version=2023-05-29"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-    payload = {
-        "model_id": model_id,
-        "project_id": project_id,
-        "input": prompt,
-        "parameters": {
-            "decoding_method": "greedy",
-            "max_new_tokens": 2000,
-            "min_new_tokens": 200,
-            "stop_sequences": [],
-        },
-    }
-
-    resp = requests.post(endpoint, headers=headers, json=payload, timeout=120)
-    resp.raise_for_status()
-
-    raw_text = resp.json()["results"][0]["generated_text"].strip()
-    return parse_json_response(raw_text)
-
-
-def parse_json_response(raw: str) -> dict:
-    """Extract and parse the JSON block from the model response."""
-    # Strip markdown code fences if present
-    raw = re.sub(r"```(?:json)?\s*", "", raw).strip().strip("`").strip()
-
-    # Try direct parse
-    try:
-        return json.loads(raw)
-    except json.JSONDecodeError:
-        pass
-
-    # Try to extract the first {...} block
-    match = re.search(r"\{[\s\S]*\}", raw)
-    if match:
-        try:
-            return json.loads(match.group())
-        except json.JSONDecodeError:
-            pass
-
-    # Return a graceful fallback
-    return {
-        "overall_score": 0,
-        "ats_score": 0,
-        "skills_match_percent": 0,
-        "missing_keywords": [],
-        "strengths": ["Analysis could not be fully parsed — please retry."],
-        "weaknesses": [],
-        "section_scores": {"Summary": 0, "Experience": 0, "Education": 0, "Skills": 0, "Formatting": 0, "Keywords": 0},
-        "skills_by_category": {"Technical Skills": 0, "Soft Skills": 0, "Domain Knowledge": 0, "Tools & Platforms": 0},
-        "keyword_coverage": {"Present": 0, "Missing": 0},
-        "extracted_info": {"technical_skills": [], "soft_skills": [], "experience": [], "education": [], "certifications": [], "projects": []},
-        "resume_summary": raw[:500] if raw else "No summary available.",
-        "grammar_suggestions": [],
-        "improvement_suggestions": [],
-        "recommendation": "Weak Match",
-        "recommendation_reason": "Could not parse structured response from the model.",
-    }
-
+def call_groq(prompt: str, api_key: str, model_id: str) -> dict:
+    """Call Groq API using native JSON mode."""
+    client = Groq(api_key=api_key)
+    response = client.chat.completions.create(
+        model=model_id,
+        messages=[
+            {"role": "system", "content": "You are a professional HR analyst that outputs strictly raw JSON."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.2,
+        response_format={"type": "json_object"}
+    )
+    raw_text = response.choices[0].message.content
+    return json.loads(raw_text)
 
 # ──────────────────────────────────────────────
-# Plotly chart helpers
+# Charting & UI Code
 # ──────────────────────────────────────────────
 CHART_CONFIG = {"displayModeBar": False}
-COLORS_BLUE = ["#3b82f6", "#60a5fa", "#93c5fd", "#bfdbfe", "#1d4ed8", "#2563eb"]
-
 
 def gauge_chart(value: int, title: str, color: str = "#3b82f6") -> go.Figure:
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=value,
-        title={"text": title, "font": {"size": 14, "color": "#374151"}},
-        number={"font": {"size": 32, "color": "#1e293b"}, "suffix": ""},
+        title={"text": title, "font": {"size": 14, "color": "#e8eaf0"}},
+        number={"font": {"size": 32, "color": "#e8eaf0"}},
         gauge={
-            "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#d1d5db"},
+            "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#2e3347"},
             "bar": {"color": color},
-            "bgcolor": "#f3f4f6",
+            "bgcolor": "#1a1d27",
             "borderwidth": 0,
-            "steps": [
-                {"range": [0, 40],  "color": "#fee2e2"},
-                {"range": [40, 70], "color": "#fef9c3"},
-                {"range": [70, 100],"color": "#dcfce7"},
-            ],
-            "threshold": {"line": {"color": color, "width": 3}, "thickness": 0.8, "value": value},
         },
     ))
-    fig.update_layout(height=220, margin=dict(t=40, b=10, l=20, r=20), paper_bgcolor="white", plot_bgcolor="white")
+    fig.update_layout(height=200, margin=dict(t=30, b=10, l=20, r=20), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     return fig
 
-
-def radar_chart(categories: list, values: list) -> go.Figure:
-    cats = categories + [categories[0]]
-    vals = values + [values[0]]
-    fig = go.Figure(go.Scatterpolar(
-        r=vals, theta=cats,
-        fill="toself",
-        fillcolor="rgba(59,130,246,0.15)",
-        line=dict(color="#3b82f6", width=2),
-        marker=dict(color="#1d4ed8", size=6),
-    ))
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(visible=True, range=[0, 100], tickfont=dict(size=10), gridcolor="#e5e7eb"),
-            angularaxis=dict(tickfont=dict(size=11)),
-            bgcolor="white",
-        ),
-        showlegend=False,
-        height=320,
-        margin=dict(t=20, b=20, l=40, r=40),
-        paper_bgcolor="white",
-    )
-    return fig
-
-
-def bar_chart(labels: list, values: list, title: str, color: str = "#3b82f6") -> go.Figure:
-    fig = go.Figure(go.Bar(
-        x=values, y=labels,
-        orientation="h",
-        marker=dict(color=color, line=dict(width=0)),
-        text=[f"{v}" for v in values],
-        textposition="outside",
-        textfont=dict(size=12, color="#374151"),
-    ))
-    fig.update_layout(
-        title=dict(text=title, font=dict(size=14, color="#1e293b"), x=0),
-        xaxis=dict(range=[0, 110], showgrid=True, gridcolor="#f3f4f6", zeroline=False, tickfont=dict(size=11)),
-        yaxis=dict(tickfont=dict(size=12), automargin=True),
-        height=max(200, len(labels) * 48 + 60),
-        margin=dict(t=40, b=20, l=10, r=60),
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-    )
-    return fig
-
-
-def donut_chart(labels: list, values: list, title: str) -> go.Figure:
-    fig = go.Figure(go.Pie(
-        labels=labels, values=values,
-        hole=0.55,
-        marker=dict(colors=["#3b82f6", "#f87171"], line=dict(color="white", width=2)),
-        textinfo="label+percent",
-        textfont=dict(size=12),
-    ))
-    fig.update_layout(
-        title=dict(text=title, font=dict(size=14, color="#1e293b"), x=0),
-        showlegend=True,
-        legend=dict(orientation="h", y=-0.1, font=dict(size=11)),
-        height=280,
-        margin=dict(t=40, b=30, l=10, r=10),
-        paper_bgcolor="white",
-    )
-    return fig
-
-
-def sw_bar_chart(strengths: list, weaknesses: list) -> go.Figure:
-    s_items = strengths[:5]
-    w_items = weaknesses[:5]
-    cats   = [f"✓ {s[:35]}" for s in s_items] + [f"✗ {w[:35]}" for w in w_items]
-    colors = ["#3b82f6"] * len(s_items) + ["#f87171"] * len(w_items)
-    # Use a simple equal-length bar per item; direction encodes type
-    vals = [1] * len(s_items) + [-1] * len(w_items)
-
-    fig = go.Figure(go.Bar(
-        x=vals, y=cats,
-        orientation="h",
-        marker=dict(color=colors),
-        text=["Strength"] * len(s_items) + ["Weakness"] * len(w_items),
-        textposition="inside",
-        textfont=dict(size=11, color="white"),
-    ))
-    fig.add_vline(x=0, line=dict(color="#9ca3af", width=1))
-    fig.update_layout(
-        title=dict(text="Strengths vs. Weaknesses", font=dict(size=14, color="#1e293b"), x=0),
-        xaxis=dict(visible=False),
-        yaxis=dict(automargin=True, tickfont=dict(size=11)),
-        height=max(240, (len(s_items) + len(w_items)) * 38 + 60),
-        margin=dict(t=40, b=20, l=20, r=20),
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-    )
-    return fig
-
-
-# ──────────────────────────────────────────────
-# Export helpers
-# ──────────────────────────────────────────────
-def build_csv(data: dict) -> bytes:
-    rows = []
-    rows.append({"Category": "Overall Score",   "Value": data.get("overall_score", 0)})
-    rows.append({"Category": "ATS Score",        "Value": data.get("ats_score", 0)})
-    rows.append({"Category": "Skills Match (%)", "Value": data.get("skills_match_percent", 0)})
-    rows.append({"Category": "Missing Keywords", "Value": len(data.get("missing_keywords", []))})
-
-    for k, v in data.get("section_scores", {}).items():
-        rows.append({"Category": f"Section: {k}", "Value": v})
-
-    for item in data.get("strengths", []):
-        rows.append({"Category": "Strength", "Value": item})
-    for item in data.get("weaknesses", []):
-        rows.append({"Category": "Weakness", "Value": item})
-    for item in data.get("missing_keywords", []):
-        rows.append({"Category": "Missing Keyword", "Value": item})
-    for item in data.get("improvement_suggestions", []):
-        rows.append({"Category": "Improvement", "Value": item})
-
-    df = pd.DataFrame(rows)
-    return df.to_csv(index=False).encode("utf-8")
-
-
-def build_pdf_report(data: dict, resume_name: str) -> bytes:
-    """Generate a PDF report using fpdf2."""
-    try:
-        from fpdf import FPDF
-
-        class PDF(FPDF):
-            def header(self):
-                self.set_fill_color(30, 64, 175)
-                self.rect(0, 0, 210, 18, "F")
-                self.set_font("Helvetica", "B", 13)
-                self.set_text_color(255, 255, 255)
-                self.set_y(4)
-                self.cell(0, 10, "AI Resume Reviewer — Analysis Report", align="C")
-                self.ln(14)
-                self.set_text_color(0, 0, 0)
-
-            def footer(self):
-                self.set_y(-12)
-                self.set_font("Helvetica", "", 8)
-                self.set_text_color(150, 150, 150)
-                self.cell(0, 6, f"Generated {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}  |  Powered by IBM watsonx.ai", align="C")
-
-        pdf = PDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
-        pdf.set_margins(18, 22, 18)
-
-        def section(title):
-            pdf.set_font("Helvetica", "B", 11)
-            pdf.set_fill_color(239, 246, 255)
-            pdf.set_draw_color(59, 130, 246)
-            pdf.set_text_color(30, 64, 175)
-            pdf.cell(0, 8, f"  {title}", border="L", fill=True, new_x="LMARGIN", new_y="NEXT")
-            pdf.set_text_color(0, 0, 0)
-            pdf.ln(2)
-
-        def body(text):
-            pdf.set_font("Helvetica", "", 10)
-            pdf.set_text_color(31, 35, 40)
-            pdf.multi_cell(0, 6, text)
-            pdf.ln(1)
-
-        def bullet_list(items):
-            pdf.set_font("Helvetica", "", 10)
-            pdf.set_text_color(31, 35, 40)
-            for item in items:
-                pdf.cell(6)
-                pdf.multi_cell(0, 6, f"\u2022  {item}")
-            pdf.ln(1)
-
-        # Meta
-        pdf.set_font("Helvetica", "", 10)
-        pdf.set_text_color(90, 90, 90)
-        pdf.cell(0, 6, f"Resume: {resume_name}    |    Date: {datetime.datetime.now().strftime('%B %d, %Y')}", ln=True)
-        pdf.ln(3)
-
-        # Scores
-        section("Scores")
-        scores_text = (
-            f"Overall Resume Score: {data.get('overall_score', 'N/A')}/100\n"
-            f"ATS Compatibility Score: {data.get('ats_score', 'N/A')}/100\n"
-            f"Skills Match: {data.get('skills_match_percent', 'N/A')}%\n"
-            f"Missing Keywords: {len(data.get('missing_keywords', []))}"
-        )
-        body(scores_text)
-
-        # Recommendation
-        section("Recommendation")
-        body(f"{data.get('recommendation', 'N/A')} — {data.get('recommendation_reason', '')}")
-
-        # Summary
-        section("Resume Summary")
-        body(data.get("resume_summary", ""))
-
-        # Section scores
-        section("Section Scores")
-        for k, v in data.get("section_scores", {}).items():
-            body(f"{k}: {v}/100")
-
-        # Strengths
-        section("Strengths")
-        bullet_list(data.get("strengths", []))
-
-        # Weaknesses
-        section("Areas for Improvement")
-        bullet_list(data.get("weaknesses", []))
-
-        # Missing keywords
-        section("Missing Keywords")
-        body(", ".join(data.get("missing_keywords", [])) or "None identified.")
-
-        # Suggestions
-        section("Actionable Improvement Suggestions")
-        bullet_list(data.get("improvement_suggestions", []))
-
-        # Grammar suggestions
-        if data.get("grammar_suggestions"):
-            section("Grammar & Wording Suggestions")
-            bullet_list(data.get("grammar_suggestions", []))
-
-        return bytes(pdf.output())
-
-    except ImportError:
-        # Plain-text fallback encoded as bytes
-        lines = [
-            "AI Resume Reviewer — Analysis Report",
-            "=" * 50,
-            f"Overall Score: {data.get('overall_score')}/100",
-            f"ATS Score:     {data.get('ats_score')}/100",
-            f"Skills Match:  {data.get('skills_match_percent')}%",
-            f"Recommendation: {data.get('recommendation')}",
-            "",
-            "Strengths:",
-            *[f"  • {s}" for s in data.get("strengths", [])],
-            "",
-            "Weaknesses:",
-            *[f"  • {w}" for w in data.get("weaknesses", [])],
-            "",
-            "Missing Keywords:",
-            "  " + ", ".join(data.get("missing_keywords", [])),
-            "",
-            "Improvements:",
-            *[f"  • {i}" for i in data.get("improvement_suggestions", [])],
-        ]
-        return "\n".join(lines).encode("utf-8")
-
-
-# ──────────────────────────────────────────────
-# Score colour helper
-# ──────────────────────────────────────────────
-def score_color(score: int) -> str:
-    if score >= 70:
-        return "#34d399"
-    elif score >= 40:
-        return "#fbbf24"
-    return "#f87171"
-
-
-def score_label(score: int) -> str:
-    if score >= 70:
-        return "Good"
-    elif score >= 40:
-        return "Fair"
-    return "Needs Work"
-
-
-# ──────────────────────────────────────────────
-# Main UI
-# ──────────────────────────────────────────────
 def main():
-    # ── Hero ──────────────────────────────────
-    st.markdown("""
-    <div class="hero">
-      <h1>📄 AI Resume Reviewer</h1>
-      <p>Upload your resume and paste a job description to receive an AI-powered ATS analysis,
-         resume score, keyword gap report, and personalised improvement suggestions.</p>
-      <span class="badge">⚡ Powered by IBM watsonx.ai &nbsp;|&nbsp; IBM Docling</span>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("## 📄 AI Resume Reviewer")
+    st.caption("Powered by Groq (Llama 3.3 70B) & IBM Docling")
 
-    # ── Sidebar — credentials ─────────────────
+    groq_api_key = _secret("GROQ_API_KEY")
+
     with st.sidebar:
         st.markdown("### ⚙️ Configuration")
-        st.caption("Credentials are loaded from `.env` by default. Override here for this session.")
+        api_key = st.text_input("Groq API Key", value=groq_api_key, type="password")
+        model_id = st.selectbox("Model", ["llama-3.3-70b-versatile", "llama3-8b-8192"])
 
-        api_key   = st.text_input("IBM Cloud API Key",    value=WATSONX_API_KEY,  type="password", key="api_key")
-        proj_id   = st.text_input("watsonx.ai Project ID", value=WATSONX_PROJECT, type="password", key="proj_id")
-        model_id  = st.selectbox("Model", [
-            "meta-llama/llama-3-3-70b-instruct",
-            "meta-llama/llama-3-8b-instruct",
-            "ibm/granite-13b-instruct-v2",
-            "ibm/granite-20b-multilingual",
-            "ibm/granite-3-8b-instruct",
-        ], index=0)
-        wx_url    = st.text_input("watsonx.ai URL", value=WATSONX_URL)
-
-        st.markdown("---")
-        st.markdown("""
-        **How to get credentials:**
-        1. Sign up at [ibm.com/watsonx](https://ibm.com/watsonx)
-        2. Create a Project in watsonx.ai
-        3. Generate an API Key in IBM Cloud IAM
-        4. Copy the Project ID from project settings
-        """)
-
-    # ── Upload + JD ───────────────────────────
     col_up, col_jd = st.columns([1, 1], gap="large")
 
     with col_up:
-        with st.container(border=True):
-            st.markdown('<p class="panel-label">📄 Resume Upload</p>', unsafe_allow_html=True)
-            uploaded_file = st.file_uploader(
-                "Upload your PDF resume",
-                type=["pdf"],
-                help="Upload a single PDF resume. IBM Docling will extract all text.",
-                label_visibility="collapsed",
-            )
-            if uploaded_file:
-                st.success(f"✅ **{uploaded_file.name}** — {uploaded_file.size / 1024:.1f} KB")
+        uploaded_file = st.file_uploader("Upload your PDF resume", type=["pdf"])
 
     with col_jd:
-        with st.container(border=True):
-            st.markdown('<p class="panel-label">📋 Job Description</p>', unsafe_allow_html=True)
-            job_desc = st.text_area(
-                "Paste the Job Description",
-                height=200,
-                placeholder="Paste the full job description here — required skills, responsibilities, qualifications…",
-                label_visibility="collapsed",
-            )
-            jd_word_count = len(job_desc.split()) if job_desc else 0
-            st.caption(f"{jd_word_count} words")
+        job_desc = st.text_area("Paste Job Description", height=180)
 
-    # ── Analyze button ─────────────────────────
-    st.markdown("")
-    btn_col, _ = st.columns([1, 3])
-    with btn_col:
-        analyze_clicked = st.button("🔍 Analyze Resume", use_container_width=True)
-
-    # ── Validation ────────────────────────────
-    if analyze_clicked:
-        errors = []
-        if not uploaded_file:
-            errors.append("Please upload a PDF resume.")
-        if not job_desc.strip():
-            errors.append("Please paste a job description.")
-        if not api_key:
-            errors.append("IBM Cloud API Key is missing — add it in the sidebar or `.env`.")
-        if not proj_id:
-            errors.append("watsonx.ai Project ID is missing — add it in the sidebar or `.env`.")
-
-        if errors:
-            for e in errors:
-                st.error(e)
+    if st.button("🔍 Analyze Resume", use_container_width=True):
+        if not uploaded_file or not job_desc or not api_key:
+            st.error("Please provide a resume, job description, and Groq API Key.")
             st.stop()
 
-        # ── Extraction ────────────────────────
-        with st.status("🔬 Extracting resume text with IBM Docling…", expanded=True) as status:
+        with st.spinner("Extracting text with IBM Docling..."):
             pdf_bytes = uploaded_file.read()
-            st.write("Reading PDF…")
             resume_text = extract_text_docling(pdf_bytes)
-            word_count = len(resume_text.split())
-            st.write(f"✅ Extracted **{word_count}** words from **{len(resume_text)}** characters.")
-            status.update(label="✅ Text extraction complete", state="complete")
 
-        if not resume_text.strip() or word_count < 20:
-            st.error("Could not extract meaningful text from the PDF. Please ensure it is a text-based PDF, not a scanned image.")
-            st.stop()
-
-        # ── Watsonx inference ─────────────────
-        with st.status("🤖 Analyzing with IBM watsonx.ai…", expanded=True) as status:
-            st.write(f"Sending to model `{model_id}`…")
+        with st.spinner("Analyzing with Llama 3.3 via Groq..."):
+            prompt = build_analysis_prompt(resume_text, job_desc)
             try:
-                prompt = build_analysis_prompt(resume_text, job_desc)
-                result = call_watsonx(prompt, api_key, proj_id, model_id, wx_url)
-                st.write("✅ AI analysis complete.")
-                status.update(label="✅ watsonx.ai analysis complete", state="complete")
-            except requests.HTTPError as exc:
-                status.update(label="❌ API Error", state="error")
-                st.error(f"watsonx.ai API error: {exc.response.status_code} — {exc.response.text[:400]}")
-                st.stop()
-            except Exception as exc:
-                status.update(label="❌ Error", state="error")
-                st.error(f"Unexpected error: {exc}")
+                result = call_groq(prompt, api_key, model_id)
+                st.session_state["result"] = result
+            except Exception as e:
+                st.error(f"Analysis failed: {e}")
                 st.stop()
 
-        st.session_state["result"]      = result
-        st.session_state["resume_text"] = resume_text
-        st.session_state["resume_name"] = uploaded_file.name
-        st.session_state["job_desc"]    = job_desc
-
-    # ── Dashboard (only when result is available) ──
     result = st.session_state.get("result")
-    if not result:
+    if result:
         st.markdown("---")
-        st.info("👆 Upload your resume and paste a job description, then click **Analyze Resume** to get started.")
-        return
+        m1, m2, m3 = st.columns(3)
+        with m1:
+            st.plotly_chart(gauge_chart(result.get("overall_score", 0), "Overall Score"), use_container_width=True, config=CHART_CONFIG)
+        with m2:
+            st.plotly_chart(gauge_chart(result.get("ats_score", 0), "ATS Score"), use_container_width=True, config=CHART_CONFIG)
+        with m3:
+            st.plotly_chart(gauge_chart(result.get("skills_match_percent", 0), "Skills Match %"), use_container_width=True, config=CHART_CONFIG)
 
-    resume_name = st.session_state.get("resume_name", "resume.pdf")
+        st.markdown("### 🎯 Recommendation")
+        st.info(f"**{result.get('recommendation')}**: {result.get('recommendation_reason')}")
 
-    st.markdown("---")
-    st.markdown('<div class="section-heading">📊 Analysis Dashboard</div>', unsafe_allow_html=True)
-
-    # ── Metric cards ──────────────────────────
-    m1, m2, m3, m4 = st.columns(4, gap="medium")
-
-    overall = result.get("overall_score", 0)
-    ats     = result.get("ats_score", 0)
-    skills  = result.get("skills_match_percent", 0)
-    missing = len(result.get("missing_keywords", []))
-
-    with m1:
-        st.markdown(f"""
-        <div class="card" style="border-top:4px solid {score_color(overall)}">
-          <div class="card-title">Resume Score</div>
-          <div class="card-value" style="color:{score_color(overall)}">{overall}<span style="font-size:1rem;color:#8b93a8">/100</span></div>
-          <div class="card-sub">{score_label(overall)}</div>
-        </div>""", unsafe_allow_html=True)
-
-    with m2:
-        st.markdown(f"""
-        <div class="card" style="border-top:4px solid {score_color(ats)}">
-          <div class="card-title">ATS Score</div>
-          <div class="card-value" style="color:{score_color(ats)}">{ats}<span style="font-size:1rem;color:#8b93a8">/100</span></div>
-          <div class="card-sub">ATS Compatibility</div>
-        </div>""", unsafe_allow_html=True)
-
-    with m3:
-        st.markdown(f"""
-        <div class="card" style="border-top:4px solid {score_color(skills)}">
-          <div class="card-title">Skills Match</div>
-          <div class="card-value" style="color:{score_color(skills)}">{skills}<span style="font-size:1rem;color:#8b93a8">%</span></div>
-          <div class="card-sub">vs. Job Requirements</div>
-        </div>""", unsafe_allow_html=True)
-
-    with m4:
-        mk_color = "#f87171" if missing > 5 else "#fbbf24" if missing > 2 else "#34d399"
-        st.markdown(f"""
-        <div class="card" style="border-top:4px solid {mk_color}">
-          <div class="card-title">Missing Keywords</div>
-          <div class="card-value" style="color:{mk_color}">{missing}</div>
-          <div class="card-sub">Keywords to add</div>
-        </div>""", unsafe_allow_html=True)
-
-    st.markdown("")
-
-    # ── Charts row 1: Gauges ──────────────────
-    st.markdown('<div class="section-heading">📈 Score Visualizations</div>', unsafe_allow_html=True)
-    gc1, gc2, gc3 = st.columns(3, gap="medium")
-
-    with gc1:
-        with st.container(border=True):
-            st.plotly_chart(gauge_chart(overall, "Overall Score", score_color(overall)), use_container_width=True, config=CHART_CONFIG)
-
-    with gc2:
-        with st.container(border=True):
-            st.plotly_chart(gauge_chart(ats, "ATS Score", score_color(ats)), use_container_width=True, config=CHART_CONFIG)
-
-    with gc3:
-        with st.container(border=True):
-            st.plotly_chart(gauge_chart(skills, "Skills Match %", score_color(skills)), use_container_width=True, config=CHART_CONFIG)
-
-    # ── Charts row 2 ──────────────────────────
-    ch1, ch2 = st.columns(2, gap="medium")
-
-    section_scores = result.get("section_scores", {})
-    skills_by_cat  = result.get("skills_by_category", {})
-    kw_coverage    = result.get("keyword_coverage", {"Present": 0, "Missing": 0})
-
-    with ch1:
-        with st.container(border=True):
-            if section_scores:
-                fig = bar_chart(
-                    list(section_scores.keys()),
-                    list(section_scores.values()),
-                    "Resume Section Scores",
-                    color=COLORS_BLUE[0],
-                )
-                st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
-
-    with ch2:
-        with st.container(border=True):
-            if skills_by_cat:
-                fig = radar_chart(list(skills_by_cat.keys()), list(skills_by_cat.values()))
-                st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
-
-    # ── Charts row 3 ──────────────────────────
-    ch3, ch4 = st.columns(2, gap="medium")
-
-    with ch3:
-        with st.container(border=True):
-            if kw_coverage:
-                fig = donut_chart(
-                    list(kw_coverage.keys()),
-                    list(kw_coverage.values()),
-                    "Keyword Coverage",
-                )
-                st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
-
-    with ch4:
-        with st.container(border=True):
-            strengths  = result.get("strengths", [])
-            weaknesses = result.get("weaknesses", [])
-            if strengths or weaknesses:
-                fig = sw_bar_chart(strengths, weaknesses)
-                st.plotly_chart(fig, use_container_width=True, config=CHART_CONFIG)
-
-    # ── Extracted info table ───────────────────
-    st.markdown('<div class="section-heading">📋 Extracted Resume Information</div>', unsafe_allow_html=True)
-    extracted = result.get("extracted_info", {})
-
-    ei_cols = st.columns(3, gap="medium")
-    ei_fields = [
-        ("Technical Skills",  "technical_skills",  "🔧"),
-        ("Soft Skills",       "soft_skills",        "🤝"),
-        ("Experience",        "experience",         "💼"),
-        ("Education",         "education",          "🎓"),
-        ("Certifications",    "certifications",     "🏆"),
-        ("Projects",          "projects",           "🚀"),
-    ]
-
-    for i, (label, key, icon) in enumerate(ei_fields):
-        with ei_cols[i % 3]:
-            items = extracted.get(key, [])
-            with st.container(border=True):
-                st.markdown(f"**{icon} {label}**")
-                if items:
-                    tags_html = " ".join(f'<span class="tag">{t}</span>' for t in items[:12])
-                    st.markdown(tags_html, unsafe_allow_html=True)
-                else:
-                    st.caption("None identified.")
-
-    # ── AI Feedback sections ───────────────────
-    st.markdown('<div class="section-heading">🧠 AI Feedback</div>', unsafe_allow_html=True)
-
-    fb1, fb2 = st.columns([1, 1], gap="large")
-
-    with fb1:
-        # Summary
-        with st.container(border=True):
-            st.markdown("**📝 Resume Summary**")
-            st.write(result.get("resume_summary", ""))
-
-        # Strengths
-        with st.container(border=True):
-            st.markdown("**✅ Resume Strengths**")
-            for s in strengths:
-                st.markdown(f'<span class="tag tag-ok">✓</span> {s}', unsafe_allow_html=True)
-                st.markdown("")
-
-        # Grammar
-        grammar = result.get("grammar_suggestions", [])
-        if grammar:
-            with st.container(border=True):
-                st.markdown("**✍️ Grammar & Wording Suggestions**")
-                for g in grammar:
-                    st.markdown(f"- {g}")
-
-    with fb2:
-        # Weaknesses
-        with st.container(border=True):
-            st.markdown("**⚠️ Areas for Improvement**")
-            for w in weaknesses:
-                st.markdown(f'<span class="tag tag-warn">!</span> {w}', unsafe_allow_html=True)
-                st.markdown("")
-
-        # Missing keywords
-        mk = result.get("missing_keywords", [])
-        with st.container(border=True):
-            st.markdown("**🔑 Missing Keywords**")
-            if mk:
-                tags_html = " ".join(f'<span class="tag tag-warn">{kw}</span>' for kw in mk)
-                st.markdown(tags_html, unsafe_allow_html=True)
-            else:
-                st.markdown('<span class="tag tag-ok">None missing — great keyword coverage!</span>', unsafe_allow_html=True)
-
-        # Improvements
-        improvements = result.get("improvement_suggestions", [])
-        with st.container(border=True):
-            st.markdown("**💡 Actionable Improvements**")
-            for idx_i, imp in enumerate(improvements, 1):
-                st.markdown(f"**{idx_i}.** {imp}")
-
-    # ── Section-by-section scores detail ──────
-    st.markdown('<div class="section-heading">📂 Section-by-Section Breakdown</div>', unsafe_allow_html=True)
-    if section_scores:
-        cols = st.columns(len(section_scores), gap="small")
-        for i, (sec, score) in enumerate(section_scores.items()):
-            with cols[i]:
-                sc = score_color(score)
-                st.markdown(f"""
-                <div class="card" style="text-align:center;border-top:3px solid {sc}">
-                  <div class="card-title">{sec}</div>
-                  <div class="card-value" style="color:{sc};font-size:1.8rem">{score}</div>
-                  <div class="card-sub">/100 · {score_label(score)}</div>
-                </div>""", unsafe_allow_html=True)
-
-    # ── Final recommendation ───────────────────
-    st.markdown('<div class="section-heading">🎯 Final Recommendation</div>', unsafe_allow_html=True)
-    rec = result.get("recommendation", "Moderate Match")
-    rec_reason = result.get("recommendation_reason", "")
-
-    if "Strong" in rec:
-        cls = "rec-strong"
-        icon = "🟢"
-    elif "Moderate" in rec:
-        cls = "rec-moderate"
-        icon = "🟡"
-    else:
-        cls = "rec-weak"
-        icon = "🔴"
-
-    st.markdown(f"""
-    <div class="{cls}">
-      <h3 style="margin:0 0 .4rem">{icon} {rec}</h3>
-      <p style="margin:0">{rec_reason}</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # ── Raw extracted text expander ────────────
-    with st.expander("🔍 View Extracted Resume Text (from IBM Docling)"):
-        st.text_area("Raw Text", st.session_state.get("resume_text", ""), height=280, disabled=True)
-
-    # ── Export ────────────────────────────────
-    st.markdown('<div class="section-heading">📥 Export Results</div>', unsafe_allow_html=True)
-    export_cols = st.columns(3, gap="medium")
-
-    with export_cols[0]:
-        with st.container(border=True):
-            st.markdown("**📄 PDF Report**")
-            st.caption("Full analysis report with scores, feedback, and recommendations.")
-            pdf_bytes = build_pdf_report(result, resume_name)
-            st.download_button(
-                "⬇ Download PDF",
-                data=pdf_bytes,
-                file_name=f"resume_review_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.pdf",
-                mime="application/pdf",
-                use_container_width=True,
-            )
-
-    with export_cols[1]:
-        with st.container(border=True):
-            st.markdown("**📊 CSV Export**")
-            st.caption("Scores, keywords, strengths, and suggestions as a spreadsheet.")
-            csv_bytes = build_csv(result)
-            st.download_button(
-                "⬇ Download CSV",
-                data=csv_bytes,
-                file_name=f"resume_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                mime="text/csv",
-                use_container_width=True,
-            )
-
-    with export_cols[2]:
-        with st.container(border=True):
-            st.markdown("**🗂 JSON Export**")
-            st.caption("Full structured AI response — ideal for integrations and pipelines.")
-            json_str = json.dumps(result, indent=2)
-            st.download_button(
-                "⬇ Download JSON",
-                data=json_str.encode("utf-8"),
-                file_name=f"resume_analysis_{datetime.datetime.now().strftime('%Y%m%d_%H%M')}.json",
-                mime="application/json",
-                use_container_width=True,
-            )
-
-    # ── Footer ────────────────────────────────
-    st.markdown("""
-    <hr style="border:none;border-top:1px solid #e2e8f0;margin:2rem 0 .8rem">
-    <p style="text-align:center;color:#94a3b8;font-size:.78rem">
-      AI Resume Reviewer &nbsp;|&nbsp; Built with IBM watsonx.ai &amp; IBM Docling &nbsp;|&nbsp;
-      Results are AI-generated and should be used as guidance, not as definitive assessments.
-    </p>
-    """, unsafe_allow_html=True)
-
+        st.markdown("### 💡 Improvement Suggestions")
+        for sug in result.get("improvement_suggestions", []):
+            st.write(f"- {sug}")
 
 if __name__ == "__main__":
     main()
